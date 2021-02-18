@@ -37,9 +37,24 @@ include_once(__DIR__ . '/classes/RjMakitoPrintjobs.php');
 
 class Rj_MakitoSync extends Module
 {
+    protected $_html = '';
     protected $config_form = false;
     private $url_import = '';
     private $ficheroDescargado;
+
+    /**
+     * url de donde se descargan los xml
+     *
+     * @var array
+     */
+    protected $nodesDowload = ['PrintJobsPrices','ItemPrintingFile'];
+
+    /**
+     * Nombre del parametro de api_key
+     *
+     * @var string
+     */
+    protected $namekey = 'pszinternal';
 
     public function __construct()
     {
@@ -158,17 +173,17 @@ class Rj_MakitoSync extends Module
 
         if (Tools::isSubmit('manual_import')){
             $this->importAchives();
-            $this->setData();
+            // $this->setData();
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
 
-        $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
-        $output .= $this->renderFormUrlService();
-        $output .= $this->renderFormManualImport();
-        $output .= $this->renderList();
+        $this->_html .= $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
+        $this->_html .= $this->renderFormUrlService();
+        $this->_html .= $this->renderFormManualImport();
+        $this->_html .= $this->renderList();
 
-        return $output;
+        return $this->_html;
     }
 
     /**
@@ -306,65 +321,62 @@ class Rj_MakitoSync extends Module
         return $this->display(__FILE__, 'manual_import.tpl');
     }
 
+    
+
     public function importAchives()
     {
-        // $this->ficheroDescargado = '602a8e6b4dcc6.xml';
-        // dump($this->ficheroDescargado);
-        // return true;
-
-        $data_ws = $this->getConfigFormValuesUrlService();
-        $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/PrintJobsPrices.php?pszinternal=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
-        dump($url);
-        
-        $nombreFichero = date("Y-m-d").'-PrintJobsPrices.xml';
-
-        if (file_exists($nombreFichero)) {
-            $information = "El fichero $nombreFichero existe";
-            $this->displayInformation($information);
-        } else {
-            $archivo = fopen($this->url_import . $nombreFichero, "w+");
-
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 360);
-            curl_setopt($ch, CURLOPT_FILE, $archivo);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-            $datos = curl_exec($ch);
-            $infoCurl = curl_getinfo($ch);
-
-            curl_close($ch);
-            fclose($archivo);
-
-            $numIntentos = 0;
-            $correcto = false;
-
-            if ($infoCurl['http_code'] == 200 && $numIntentos <= 10) {
-                $correcto = true;
-            }
-
-            if ($correcto) {
-
-                $this->ficheroDescargado = $nombreFichero;
-                $resultado = $nombreFichero;
-
+        foreach ($this->nodesDowload as $node) {
+            $data_ws = $this->getConfigFormValuesUrlService();
+            $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/'.$node.'.php?'.$this->namekey.'=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
+            dump($url);
+            $nameFile = date("Y-m-d").'-'. $node .'.xml';
+            
+            if (file_exists($nameFile)) {
+                $information = "El fichero $nameFile existe";
+                $this->displayInformation($information);
             } else {
-                $resultado = false;
+                $this->getAPI($url, $nameFile);
             }
-
-            dump($this->ficheroDescargado);
-            return $resultado;
         }
+    }   
+
+    protected function getAPI($url, $nameFile) {
+        $archivo = fopen($this->url_import . $nameFile, "w+");
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 360);
+        curl_setopt($ch, CURLOPT_FILE, $archivo);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+        $datos = curl_exec($ch);
+        $infoCurl = curl_getinfo($ch);
+
+        curl_close($ch);
+        fclose($archivo);
+
+        $numIntentos = 0;
+        $correcto = false;
+
+        if ($infoCurl['http_code'] == 200 && $numIntentos <= 10) {
+            $correcto = true;
+        }
+
+        if ($correcto) {
+            $this->ficheroDescargado = $nameFile;
+            $resultado = $nameFile;
+        } else {
+            $resultado = false;
+        }
+
+        return $resultado;
     }
 
     public function readXML()
     {
         if(!is_null($this->ficheroDescargado)){
-            dump($this->ficheroDescargado);
             $xml = simplexml_load_file($this->url_import . $this->ficheroDescargado);
             $data = json_decode(json_encode($xml->printjobs), true);
-            // dump($data['printjob']);
             return $data['printjob'];
         } else {
             return false;
@@ -375,68 +387,73 @@ class Rj_MakitoSync extends Module
 
         $errors = array();
         $datos = $this->readXML();
+        if($datos) {
+            foreach ($datos as $data) {
+                $update = true;
+                
+                $printjobs = new RjMakitoPrintjobs((int)$data['teccode']);
+                if(is_null($printjobs->teccode))
+                {
+                    dump($printjobs->teccode);
+                    $printjobs = new RjMakitoPrintjobs();
+                    $update = false;
+                    $printjobs->teccode = $data['teccode'];
 
-        $printjobs = new RjMakitoPrintjobs();
-        
-        foreach ($datos as $data) {
-            $printjobs->teccode = $data['teccode'];
-            $printjobs->code = $data['code'];
-            $printjobs->name = $data['name'];
-            $printjobs->minamount = $data['minamount'];
-            $printjobs->cliche = $data['cliche'];
-            $printjobs->clicherep = $data['clicherep'];
-            $printjobs->minjob = $data['minjob'];
-            $printjobs->amountunder1 = $data['amountunder1'];
-            $printjobs->price1 = $data['price1'];
-            $printjobs->priceaditionalcol1 = $data['priceaditionalcol1'];
-            $printjobs->pricecm1 = $data['pricecm1'];
-            $printjobs->amountunder2 = $data['amountunder2'];
-            $printjobs->price2 = $data['price2'];
-            $printjobs->priceaditionalcol2 = $data['priceaditionalcol2'];
-            $printjobs->pricecm2 = $data['pricecm2'];
-            $printjobs->amountunder3 = $data['amountunder3'];
-            $printjobs->price3 = $data['price3'];
-            $printjobs->priceaditionalcol3 = $data['priceaditionalcol3'];
-            $printjobs->pricecm3 = $data['pricecm3'];
-            $printjobs->amountunder4 = $data['amountunder4'];
-            $printjobs->price4 = $data['price4'];
-            $printjobs->priceaditionalcol4 = $data['priceaditionalcol4'];
-            $printjobs->pricecm4 = $data['pricecm4'];
-            $printjobs->amountunder5 = $data['amountunder5'];
-            $printjobs->price5 = $data['price5'];
-            $printjobs->priceaditionalcol5 = $data['priceaditionalcol5'];
-            $printjobs->pricecm5 = $data['pricecm5'];
-            $printjobs->amountunder6 = $data['amountunder6'];
-            $printjobs->price6 = $data['price6'];
-            $printjobs->priceaditionalcol6 = $data['priceaditionalcol6'];
-            $printjobs->pricecm6 = $data['pricecm6'];
-            $printjobs->amountunder7 = $data['amountunder7'];
-            $printjobs->price7 = $data['price7'];
-            $printjobs->priceaditionalcol7 = $data['priceaditionalcol7'];
-            $printjobs->pricecm7 = $data['pricecm7'];
-            $printjobs->terms = $data['terms'];
-            
-            if (!$printjobs->add()) {;
-                $printjobs->update();
+                }
+                
+                $printjobs->code = $data['code'];
+                $printjobs->name = $data['name'];
+                $printjobs->minamount = $data['minamount'];
+                $printjobs->cliche = $data['cliche'];
+                $printjobs->clicherep = $data['clicherep'];
+                $printjobs->minjob = $data['minjob'];
+                $printjobs->amountunder1 = $data['amountunder1'];
+                $printjobs->price1 = $data['price1'];
+                $printjobs->priceaditionalcol1 = $data['priceaditionalcol1'];
+                $printjobs->pricecm1 = $data['pricecm1'];
+                $printjobs->amountunder2 = $data['amountunder2'];
+                $printjobs->price2 = $data['price2'];
+                $printjobs->priceaditionalcol2 = $data['priceaditionalcol2'];
+                $printjobs->pricecm2 = $data['pricecm2'];
+                $printjobs->amountunder3 = $data['amountunder3'];
+                $printjobs->price3 = $data['price3'];
+                $printjobs->priceaditionalcol3 = $data['priceaditionalcol3'];
+                $printjobs->pricecm3 = $data['pricecm3'];
+                $printjobs->amountunder4 = $data['amountunder4'];
+                $printjobs->price4 = $data['price4'];
+                $printjobs->priceaditionalcol4 = $data['priceaditionalcol4'];
+                $printjobs->pricecm4 = $data['pricecm4'];
+                $printjobs->amountunder5 = $data['amountunder5'];
+                $printjobs->price5 = $data['price5'];
+                $printjobs->priceaditionalcol5 = $data['priceaditionalcol5'];
+                $printjobs->pricecm5 = $data['pricecm5'];
+                $printjobs->amountunder6 = $data['amountunder6'];
+                $printjobs->price6 = $data['price6'];
+                $printjobs->priceaditionalcol6 = $data['priceaditionalcol6'];
+                $printjobs->pricecm6 = $data['pricecm6'];
+                $printjobs->amountunder7 = $data['amountunder7'];
+                $printjobs->price7 = $data['price7'];
+                $printjobs->priceaditionalcol7 = $data['priceaditionalcol7'];
+                $printjobs->pricecm7 = $data['pricecm7'];
+                $printjobs->terms = $data['terms'];
+                
+                if (!$update) {
+                    if (!$printjobs->add()) {
+                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                    }
+                } elseif (!$printjobs->update()) {
+                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be updated.', array(), 'Modules.Imageslider.Admin'));
+                }
             }
-
-            // if (!Tools::getValue('id_slide')) {
-            //     if (!$printjobs->add()) {
-            //         $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-            //     }
-            // } elseif (!$printjobs->update()) {
-            //     $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be updated.', array(), 'Modules.Imageslider.Admin'));
-            // }
+    
+            if (count($errors)) {
+                $this->_html .= $this->displayError(implode('<br />', $errors));
+            } elseif (Tools::isSubmit('manual_import') && $update) {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=4&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
+            } elseif (Tools::isSubmit('manual_import') && !$update) {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
+            }
         }
-
-        // if (count($errors)) {
-        //     $this->_html .= $this->displayError(implode('<br />', $errors));
-        // } elseif (Tools::isSubmit('submitSlide') && Tools::getValue('id_slide')) {
-        //     Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=4&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
-        // } elseif (Tools::isSubmit('submitSlide')) {
-        //     Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
-        // }
-
     }
 
     public function getData() {
@@ -448,48 +465,69 @@ class Rj_MakitoSync extends Module
     {
         $printjobs = $this->getData();
 
-        if (!empty($printjobs)){
-            foreach ($printjobs[0] as $key => $value) {
-                if ($key !== 'terms') {
-                    $fields_list[$key] =  array(
-                        'title' => $key,
-                        'width' => 'auto'
-                    );
-                }
-            }
-        } else {
-            $fields_list = array(
-                'teccode' => array(
-                    'title' => $this->l('teccode'),
-                    'width' => 50,
-                ),
-                'code' => array(
-                    'title' => $this->l('code'),
-                    'width' => 'auto',
-                ),
-                'name' => array(
-                    'title' => $this->l('name'),
-                    'width' => 'auto',
-                ),
-                'cliche' => array(
-                    'title' => $this->l('cliche'),
-                    'width' => 'auto',
-                )
-            );
-        }
+        $fields_list = array(
+            'teccode' => array(
+                'title' => $this->l('teccode'),
+                'width' => 50,
+                'search' => false
+            ),
+            'code' => array(
+                'title' => $this->l('code'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'name' => array(
+                'title' => $this->l('name'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'cliche' => array(
+                'title' => $this->l('cliche'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'clicherep' => array(
+                'title' => $this->l('clicherep'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'minjob' => array(
+                'title' => $this->l('minjob'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'amountunder1' => array(
+                'title' => $this->l('amountunder1'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'price1' => array(
+                'title' => $this->l('price1'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'priceaditionalcol1' => array(
+                'title' => $this->l('priceaditionalcol1'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'pricecm1' => array(
+                'title' => $this->l('pricecm1'),
+                'width' => 'auto',
+                'search' => false
+            )
+        );
 
-        // dump($printjobs);
-        // die();
         $helper_list = new HelperList();
         $helper_list->module = $this;
         $helper_list->title = $this->l('printjobs');
         $helper_list->shopLinkType = '';
         $helper_list->no_link = true;
         $helper_list->title_icon = 'icon-folder';
-        $helper_list->show_toolbar = true;
+        $helper_list->show_toolbar = false;
         $helper_list->simple_header = false;
         $helper_list->identifier = 'teccode';
-        $helper_list->table = 'printjobs';
+        $helper_list->table = 'rj_makito_printjobs';
         $helper_list->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name; 
         $helper_list->token = Tools::getAdminTokenLite('AdminModules');
         $helper_list->listTotal = count($printjobs);

@@ -198,8 +198,8 @@ class RjMakitoPrintjobs extends ObjectModel
         'fields' => [
             // Config fields
             'teccode'            => ['type' => self::TYPE_STRING, 'required' => true],
-            'code'               => ['type' => self::TYPE_STRING],
-            'name'               => ['type' => self::TYPE_STRING],
+            'code'               => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml'],
+            'name'               => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml'],
             'minamount'          => ['type' => self::TYPE_INT],
             'cliche'             => ['type' => self::TYPE_FLOAT],
             'clicherep'          => ['type' => self::TYPE_FLOAT],
@@ -232,7 +232,12 @@ class RjMakitoPrintjobs extends ObjectModel
             'price7'             => ['type' => self::TYPE_FLOAT],
             'priceaditionalcol7' => ['type' => self::TYPE_FLOAT],
             'pricecm7'           => ['type' => self::TYPE_FLOAT],
-            'terms'              => ['type' => self::TYPE_STRING],
+            'terms'              => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml'],
         ],
     ];
+
+    public	function __construct($teccode = null, $id_lang = null, $id_shop = null, Context $context = null)
+	{
+		parent::__construct($teccode, $id_lang, $id_shop);
+	}
 }
