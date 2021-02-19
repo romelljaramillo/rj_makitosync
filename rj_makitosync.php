@@ -47,6 +47,7 @@ class Rj_MakitoSync extends Module
      *
      * @var array
      */
+    // protected $nodesDowload = ['PrintJobsPrices'];
     protected $nodesDowload = ['PrintJobsPrices','ItemPrintingFile'];
 
     /**
@@ -173,7 +174,7 @@ class Rj_MakitoSync extends Module
 
         if (Tools::isSubmit('manual_import')){
             $this->importAchives();
-            // $this->setData();
+            $this->setData();
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
@@ -233,64 +234,64 @@ class Rj_MakitoSync extends Module
             ]
         ];
 
-        return array(
-            'form' => array(
-                'legend' => array(
+        return [
+            'form' => [
+                'legend' => [
                 'title' => $this->l('Settings'),
                 'icon' => 'icon-cogs',
-                ),
-                'input' => array(
-                    array(
+                ],
+                'input' => [
+                    [
                         'type' => 'switch',
                         'label' => $this->l('Usa FTP'),
                         'name' => 'rj_makitosync_URL_SERVICE_FTP',
                         'is_bool' => true,
-                        'values' => array(
-                            array(
+                        'values' => [
+                            [
                                 'id' => 'active_on',
                                 'value' => true,
                                 'label' => $this->l('Enabled')
-                            ),
-                            array(
+                            ],
+                            [
                                 'id' => 'active_off',
                                 'value' => false,
                                 'label' => $this->l('Disabled')
-                            )
-                        ),
-                    ),
-                    array(
+                            ]
+                        ],
+                    ],
+                    [
                         'col' => 3,
                         'type' => 'text',
                         'prefix' => '<i class="icon icon-globe"></i>',
                         'name' => 'rj_makitosync_URL_SERVICE_URL',
                         'label' => $this->l('Url Servicio Web')
-                    ),
-                    array(
+                    ],
+                    [
                         'col' => 3,
                         'type' => 'text',
                         'prefix' => '<i class="icon icon-unlock"></i>',
                         'desc' => $this->l('pszinternal'),
                         'name' => 'rj_makitosync_URL_SERVICE_KEY_API',
                         'label' => $this->l('Key API')
-                    ),
-                    array(
+                    ],
+                    [
                         'type' => 'select',
                         'lang' => true,
                         'label' => $this->l('Link Target'),
                         'name' => 'rj_makitosync_URL_SERVICE_PROVEEDOR',
                         'desc' => $this->l('Please Eneter Web Site URL Address.'),
-                        'options' => array(
+                        'options' => [
                           'query' => $options,
                           'id' => 'id', 
                           'name' => 'name'
-                        )
-                      )
-                ),
-                'submit' => array(
+                        ]
+                      ]
+                ],
+                'submit' => [
                     'title' => $this->l('Save'),
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
     /**
@@ -321,8 +322,6 @@ class Rj_MakitoSync extends Module
         return $this->display(__FILE__, 'manual_import.tpl');
     }
 
-    
-
     public function importAchives()
     {
         foreach ($this->nodesDowload as $node) {
@@ -332,8 +331,7 @@ class Rj_MakitoSync extends Module
             $nameFile = date("Y-m-d").'-'. $node .'.xml';
             
             if (file_exists($nameFile)) {
-                $information = "El fichero $nameFile existe";
-                $this->displayInformation($information);
+                $this->_html .= $this->displayInformation("El fichero $nameFile existe");
             } else {
                 $this->getAPI($url, $nameFile);
             }
