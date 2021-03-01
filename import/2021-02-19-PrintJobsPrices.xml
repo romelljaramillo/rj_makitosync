@@ -4,48 +4,50 @@
 <pdflink><![CDATA[http://print.makito.es:8080/user/pdf/tarifa_general_marcaje_2020_esp.pdf]]></pdflink>
 <currency>€</currency>
 <printjobs>
-<printjob>
-<teccode>100111</teccode>
-<code>A</code>
-<name>TAMPOGRAFÍA A</name>
-<minamount></minamount>
-<cliche>30</cliche>
-<clicherep>15</clicherep>
-<minjob>25</minjob>
-<amountunder1>500</amountunder1>
-<price1>0.065</price1>
-<priceaditionalcol1>0.055</priceaditionalcol1>
-<pricecm1>0</pricecm1>
-<amountunder2>2000</amountunder2>
-<price2>0.06</price2>
-<priceaditionalcol2>0.045</priceaditionalcol2>
-<pricecm2>0</pricecm2>
-<amountunder3>5000</amountunder3>
-<price3>0.045</price3>
-<priceaditionalcol3>0.03</priceaditionalcol3>
-<pricecm3>0</pricecm3>
-<amountunder4>100000</amountunder4>
-<price4>0.035</price4>
-<priceaditionalcol4>0.025</priceaditionalcol4>
-<pricecm4>0</pricecm4>
-<amountunder5>0</amountunder5>
-<price5>0</price5>
-<priceaditionalcol5>0</priceaditionalcol5>
-<pricecm5>0</pricecm5>
-<amountunder6>0</amountunder6>
-<price6>0</price6>
-<priceaditionalcol6>0</priceaditionalcol6>
-<pricecm6>0</pricecm6>
-<amountunder7>0</amountunder7>
-<price7>0</price7>
-<priceaditionalcol7>0</priceaditionalcol7>
-<pricecm7>0</pricecm7>
-<terms>INCREMENTO POR ESTUCHADO O EMBOLSADO INDIVIDUAL: 0,06 €/Ud. PLEGADO DE BOLSAS: 0,10 €/Ud. DOBLADO Y EMBOLSADO DE CAMISETAS Y POLOS: 0,14 €/Ud. EN LA SERIGRAFÍA DE CAMISETAS Y POLOS SOBRE FONDOS OSCUROS (NEGRO, AZUL, MARINO, ROJO Y VERDE) SE AÑADIRÁ UN COLOR MÁS EN CONCEPTO DE BASE SOBRE EL PRECIO DE TARIFA. LANYARDS IMPRESOS CON DISTINTO LOGO EN CADA TIRA SE CONTABILIZARÁ COMO DOS IMPRESIONES. LOS PARASOLES DE AUTOMÓVIL SE ENTREGARÁN DESPLEGADOS Y EL COSTE DEL CLICHÉ SERÁ DE 50 €. PARA CADA CAMBIO DE COLOR CON IDÉNTICO MARCAJE QUE NO SUPERE EL MÍNIMO DE IMPRESIÓN SE COBRARÁ EL COSTE DEL TRABAJO MÍNIMO POR COLOR.</terms>
-</printjob>
+    <printjob>
+        <teccode>100111</teccode>
+        <code>A</code>
+        <name>TAMPOGRAFÍA A
+        </name>
+        <minamount></minamount>
+        <cliche>30</cliche>
+        <clicherep>15</clicherep>
+        <minjob>25</minjob>
+        <amountunder1>500</amountunder1>
+        <price1>0.065</price1>
+        <priceaditionalcol1>0.055</priceaditionalcol1>
+        <pricecm1>0</pricecm1>
+        <amountunder2>2000</amountunder2>
+        <price2>0.06</price2>
+        <priceaditionalcol2>0.045</priceaditionalcol2>
+        <pricecm2>0</pricecm2>
+        <amountunder3>5000</amountunder3>
+        <price3>0.045</price3>
+        <priceaditionalcol3>0.03</priceaditionalcol3>
+        <pricecm3>0</pricecm3>
+        <amountunder4>100000</amountunder4>
+        <price4>0.035</price4>
+        <priceaditionalcol4>0.025</priceaditionalcol4>
+        <pricecm4>0</pricecm4>
+        <amountunder5>0</amountunder5>
+        <price5>0</price5>
+        <priceaditionalcol5>0</priceaditionalcol5>
+        <pricecm5>0</pricecm5>
+        <amountunder6>0</amountunder6>
+        <price6>0</price6>
+        <priceaditionalcol6>0</priceaditionalcol6>
+        <pricecm6>0</pricecm6>
+        <amountunder7>0</amountunder7>
+        <price7>0</price7>
+        <priceaditionalcol7>0</priceaditionalcol7>
+        <pricecm7>0</pricecm7>
+        <terms>INCREMENTO POR ESTUCHADO O EMBOLSADO INDIVIDUAL: 0,06 €/Ud. PLEGADO DE BOLSAS: 0,10 €/Ud. DOBLADO Y EMBOLSADO DE CAMISETAS Y POLOS: 0,14 €/Ud. EN LA SERIGRAFÍA DE CAMISETAS Y POLOS SOBRE FONDOS OSCUROS (NEGRO, AZUL, MARINO, ROJO Y VERDE) SE AÑADIRÁ UN COLOR MÁS EN CONCEPTO DE BASE SOBRE EL PRECIO DE TARIFA. LANYARDS IMPRESOS CON DISTINTO LOGO EN CADA TIRA SE CONTABILIZARÁ COMO DOS IMPRESIONES. LOS PARASOLES DE AUTOMÓVIL SE ENTREGARÁN DESPLEGADOS Y EL COSTE DEL CLICHÉ SERÁ DE 50 €. PARA CADA CAMBIO DE COLOR CON IDÉNTICO MARCAJE QUE NO SUPERE EL MÍNIMO DE IMPRESIÓN SE COBRARÁ EL COSTE DEL TRABAJO MÍNIMO POR COLOR.</terms>
+    </printjob>
 <printjob>
 <teccode>100112</teccode>
 <code>B</code>
-<name>TAMPOGRAFÍA B</name>
+<name>TAMPOGRAFÍA B
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -83,7 +85,8 @@
 <printjob>
 <teccode>100113</teccode>
 <code>C</code>
-<name>TAMPOGRAFÍA C</name>
+<name>TAMPOGRAFÍA C
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -121,7 +124,8 @@
 <printjob>
 <teccode>100114</teccode>
 <code>D</code>
-<name>TAMPOGRAFÍA D</name>
+<name>TAMPOGRAFÍA D
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -159,7 +163,8 @@
 <printjob>
 <teccode>100115</teccode>
 <code>E</code>
-<name>TAMPOGRAFÍA E</name>
+<name>TAMPOGRAFÍA E
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -197,7 +202,8 @@
 <printjob>
 <teccode>100116</teccode>
 <code>F</code>
-<name>TAMPOGRAFÍA F</name>
+<name>TAMPOGRAFÍA F
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -235,7 +241,8 @@
 <printjob>
 <teccode>100117</teccode>
 <code>G</code>
-<name>TAMPOGRAFÍA G</name>
+<name>TAMPOGRAFÍA G
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -273,7 +280,8 @@
 <printjob>
 <teccode>100118</teccode>
 <code>H</code>
-<name>TAMPOGRAFÍA H</name>
+<name>TAMPOGRAFÍA H
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -311,7 +319,8 @@
 <printjob>
 <teccode>100119</teccode>
 <code>I</code>
-<name>TAMPOGRAFÍA I</name>
+<name>TAMPOGRAFÍA I
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -349,7 +358,8 @@
 <printjob>
 <teccode>100120</teccode>
 <code>J</code>
-<name>TAMPOGRAFÍA J</name>
+<name>TAMPOGRAFÍA J
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -387,7 +397,8 @@
 <printjob>
 <teccode>100123</teccode>
 <code>K</code>
-<name>TAMPOGRAFÍA K</name>
+<name>TAMPOGRAFÍA K
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -425,7 +436,8 @@
 <printjob>
 <teccode>100211</teccode>
 <code>A</code>
-<name>SERIGRAFÍA A</name>
+<name>SERIGRAFÍA A
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -463,7 +475,8 @@
 <printjob>
 <teccode>100212</teccode>
 <code>B</code>
-<name>SERIGRAFÍA B</name>
+<name>SERIGRAFÍA B
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -501,7 +514,8 @@
 <printjob>
 <teccode>100213</teccode>
 <code>C</code>
-<name>SERIGRAFÍA C</name>
+<name>SERIGRAFÍA C
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -539,7 +553,8 @@
 <printjob>
 <teccode>100214</teccode>
 <code>D</code>
-<name>SERIGRAFÍA D</name>
+<name>SERIGRAFÍA D
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -577,7 +592,8 @@
 <printjob>
 <teccode>100215</teccode>
 <code>E</code>
-<name>SERIGRAFÍA E</name>
+<name>SERIGRAFÍA E
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -615,7 +631,8 @@
 <printjob>
 <teccode>100216</teccode>
 <code>F</code>
-<name>SERIGRAFÍA F</name>
+<name>SERIGRAFÍA F
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -653,7 +670,8 @@
 <printjob>
 <teccode>100217</teccode>
 <code>G</code>
-<name>SERIGRAFÍA G</name>
+<name>SERIGRAFÍA G
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -691,7 +709,8 @@
 <printjob>
 <teccode>100218</teccode>
 <code>H</code>
-<name>SERIGRAFÍA H</name>
+<name>SERIGRAFÍA H
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -729,7 +748,8 @@
 <printjob>
 <teccode>100219</teccode>
 <code>I</code>
-<name>SERIGRAFÍA I</name>
+<name>SERIGRAFÍA I
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -767,7 +787,8 @@
 <printjob>
 <teccode>100220</teccode>
 <code>J</code>
-<name>SERIGRAFÍA J</name>
+<name>SERIGRAFÍA J
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -805,7 +826,8 @@
 <printjob>
 <teccode>100221</teccode>
 <code>K</code>
-<name>SERIGRAFÍA K</name>
+<name>SERIGRAFÍA K
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -843,7 +865,8 @@
 <printjob>
 <teccode>100400</teccode>
 <code>L1</code>
-<name>GRABACIÓN LASER 1</name>
+<name>GRABACIÓN LASER 1
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>0</clicherep>
@@ -881,7 +904,8 @@
 <printjob>
 <teccode>100500</teccode>
 <code>P</code>
-<name>GRABACIÓN BORDADO P</name>
+<name>GRABACIÓN BORDADO P
+</name>
 <minamount></minamount>
 <cliche>20</cliche>
 <clicherep>0</clicherep>
@@ -919,7 +943,8 @@
 <printjob>
 <teccode>100600</teccode>
 <code>N</code>
-<name>GRABACIÓN TRANSFER SERIGRÁFICO</name>
+<name>GRABACIÓN TRANSFER SERIGRÁFICO
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -957,7 +982,8 @@
 <printjob>
 <teccode>100700</teccode>
 <code>M</code>
-<name>GRABACIÓN CUATRICROMIA X</name>
+<name>GRABACIÓN CUATRICROMIA X
+</name>
 <minamount>500</minamount>
 <cliche>160</cliche>
 <clicherep>60</clicherep>
@@ -995,7 +1021,8 @@
 <printjob>
 <teccode>100800</teccode>
 <code>O</code>
-<name>GRABACIÓN TRANSFER DIGITAL</name>
+<name>GRABACIÓN TRANSFER DIGITAL
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1033,7 +1060,8 @@
 <printjob>
 <teccode>100815</teccode>
 <code>Q</code>
-<name>ENVASE SUBLIMACIÓN 1 CARA</name>
+<name>ENVASE SUBLIMACIÓN 1 CARA
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>0</clicherep>
@@ -1071,7 +1099,8 @@
 <printjob>
 <teccode>100816</teccode>
 <code>Q</code>
-<name>ENVASE SUBLIMACIÓN 2 CARAS</name>
+<name>ENVASE SUBLIMACIÓN 2 CARAS
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>0</clicherep>
@@ -1109,7 +1138,8 @@
 <printjob>
 <teccode>100819</teccode>
 <code>R</code>
-<name>SUBLIMACIÓN TAMAÑO GRANDE (+100 cm2)</name>
+<name>SUBLIMACIÓN TAMAÑO GRANDE (+100 cm2)
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>0</clicherep>
@@ -1147,7 +1177,8 @@
 <printjob>
 <teccode>100820</teccode>
 <code>R</code>
-<name>SUBLIMACIÓN TAMAÑO PEQUEÑO (-100 cm2)</name>
+<name>SUBLIMACIÓN TAMAÑO PEQUEÑO (-100 cm2)
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>0</clicherep>
@@ -1185,7 +1216,8 @@
 <printjob>
 <teccode>101007</teccode>
 <code>B D5M</code>
-<name>TAMPOGRAFÍA B + 5000 UDS</name>
+<name>TAMPOGRAFÍA B + 5000 UDS
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1223,7 +1255,8 @@
 <printjob>
 <teccode>101008</teccode>
 <code>A D10M</code>
-<name>TAMPOGRAFÍA A +10000 UDS</name>
+<name>TAMPOGRAFÍA A +10000 UDS
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1261,7 +1294,8 @@
 <printjob>
 <teccode>101200</teccode>
 <code>T</code>
-<name>TERMOGRABADO SECO</name>
+<name>TERMOGRABADO SECO
+</name>
 <minamount></minamount>
 <cliche>50</cliche>
 <clicherep>0</clicherep>
@@ -1299,7 +1333,8 @@
 <printjob>
 <teccode>101201</teccode>
 <code>U</code>
-<name>TERMOGRABADO CINTA COLOR</name>
+<name>TERMOGRABADO CINTA COLOR
+</name>
 <minamount></minamount>
 <cliche>50</cliche>
 <clicherep>0</clicherep>
@@ -1337,7 +1372,8 @@
 <printjob>
 <teccode>102001</teccode>
 <code>V1</code>
-<name>DOMING- GOTA DE RESINA V1 -5  cm2</name>
+<name>DOMING- GOTA DE RESINA V1 -5  cm2
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1413,7 +1449,8 @@
 <printjob>
 <teccode>102003</teccode>
 <code>V3</code>
-<name>DOMING - GOTA DE RESINA V3 -15  cm2</name>
+<name>DOMING - GOTA DE RESINA V3 -15  cm2
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1451,7 +1488,8 @@
 <printjob>
 <teccode>102004</teccode>
 <code>V4</code>
-<name>DOMING - GOTA DE RESINA V4 -20  cm2</name>
+<name>DOMING - GOTA DE RESINA V4 -20  cm2
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1489,7 +1527,8 @@
 <printjob>
 <teccode>103001</teccode>
 <code>W1</code>
-<name>DIGITAL W1 (-5  cm2)</name>
+<name>DIGITAL W1 (-5  cm2)
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1527,7 +1566,8 @@
 <printjob>
 <teccode>103002</teccode>
 <code>W2</code>
-<name>DIGITAL W2 (-10  cm2)</name>
+<name>DIGITAL W2 (-10  cm2)
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1831,7 +1871,8 @@
 <printjob>
 <teccode>103099</teccode>
 <code></code>
-<name>IMPRESIÓN DIGITAL</name>
+<name>IMPRESIÓN DIGITAL
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1869,7 +1910,8 @@
 <printjob>
 <teccode>104001</teccode>
 <code></code>
-<name>IMPRESIÓN CARAMELOS</name>
+<name>IMPRESIÓN CARAMELOS
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1945,7 +1987,8 @@
 <printjob>
 <teccode>900002</teccode>
 <code></code>
-<name>GRABACIÓN LASER INCULIDA</name>
+<name>GRABACIÓN LASER INCULIDA
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -1983,7 +2026,8 @@
 <printjob>
 <teccode>900003</teccode>
 <code></code>
-<name>IMPRESIÓN EN LONA A TODO COLOR</name>
+<name>IMPRESIÓN EN LONA A TODO COLOR
+</name>
 <minamount></minamount>
 <cliche>32.5</cliche>
 <clicherep>0</clicherep>
@@ -2021,7 +2065,8 @@
 <printjob>
 <teccode>900004</teccode>
 <code></code>
-<name>IMPRESIÓN SOBRE PROPILENO+ MONTAJE</name>
+<name>IMPRESIÓN SOBRE PROPILENO+ MONTAJE
+</name>
 <minamount></minamount>
 <cliche>32.5</cliche>
 <clicherep>0</clicherep>
@@ -2059,7 +2104,8 @@
 <printjob>
 <teccode>900005</teccode>
 <code></code>
-<name>IMPRESIÓN BLOCK ADHESIVO</name>
+<name>IMPRESIÓN BLOCK ADHESIVO
+</name>
 <minamount></minamount>
 <cliche>17.5</cliche>
 <clicherep>0</clicherep>
@@ -2097,7 +2143,8 @@
 <printjob>
 <teccode>900006</teccode>
 <code></code>
-<name>CUATRICOMÍA PORTADA Y CONTRAPORTADA</name>
+<name>CUATRICOMÍA PORTADA Y CONTRAPORTADA
+</name>
 <minamount></minamount>
 <cliche>0</cliche>
 <clicherep>0</clicherep>
@@ -2135,7 +2182,8 @@
 <printjob>
 <teccode>900009</teccode>
 <code></code>
-<name>IMPRESIÓN + GOTA DE RESINA A TODO COLOR</name>
+<name>IMPRESIÓN + GOTA DE RESINA A TODO COLOR
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2173,7 +2221,8 @@
 <printjob>
 <teccode>900010</teccode>
 <code></code>
-<name>IMPRESIÓN + GOTA DE RESINA A TODO COLOR</name>
+<name>IMPRESIÓN + GOTA DE RESINA A TODO COLOR
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2211,7 +2260,8 @@
 <printjob>
 <teccode>900012</teccode>
 <code></code>
-<name>CUATRICOMÍA PORTADA Y CONTRAPORTADA+ IMPRESIÓN HOJA A HOJA 1 COLOR</name>
+<name>CUATRICOMÍA PORTADA Y CONTRAPORTADA+ IMPRESIÓN HOJA A HOJA 1 COLOR
+</name>
 <minamount></minamount>
 <cliche>0</cliche>
 <clicherep>0</clicherep>
@@ -2249,7 +2299,8 @@
 <printjob>
 <teccode>900007</teccode>
 <code></code>
-<name>IMPRESIÓN BLOCK ENCOLADO</name>
+<name>IMPRESIÓN BLOCK ENCOLADO
+</name>
 <minamount></minamount>
 <cliche>0</cliche>
 <clicherep>0</clicherep>
@@ -2287,7 +2338,8 @@
 <printjob>
 <teccode>900008</teccode>
 <code></code>
-<name>IMPRESIÓN HOJA A HOJA(1 COLOR)Y LATERALES EN SERIGRAFIA(1 COLOR/1 MOTIVO)</name>
+<name>IMPRESIÓN HOJA A HOJA(1 COLOR)Y LATERALES EN SERIGRAFIA(1 COLOR/1 MOTIVO)
+</name>
 <minamount></minamount>
 <cliche>25</cliche>
 <clicherep>0</clicherep>
@@ -2325,7 +2377,8 @@
 <printjob>
 <teccode>102099</teccode>
 <code></code>
-<name>IMPRESIÓN TODO COLOR Y DOMING</name>
+<name>IMPRESIÓN TODO COLOR Y DOMING
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2363,7 +2416,8 @@
 <printjob>
 <teccode>900013</teccode>
 <code></code>
-<name>IMPRESIÓN DIGITAL BASIK</name>
+<name>IMPRESIÓN DIGITAL BASIK
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2401,7 +2455,8 @@
 <printjob>
 <teccode>900014</teccode>
 <code></code>
-<name>IMPRESIÓN A TODO COLOR</name>
+<name>IMPRESIÓN A TODO COLOR
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2439,7 +2494,8 @@
 <printjob>
 <teccode>900016</teccode>
 <code></code>
-<name>IMPRESIÓN 2 CARAS A TODO COLOR+ GOTA DE RESINA</name>
+<name>IMPRESIÓN 2 CARAS A TODO COLOR+ GOTA DE RESINA
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2477,7 +2533,8 @@
 <printjob>
 <teccode>900015</teccode>
 <code></code>
-<name>IMPRESIÓN A TODO COLOR + GOTA DE RESINA</name>
+<name>IMPRESIÓN A TODO COLOR + GOTA DE RESINA
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2515,7 +2572,8 @@
 <printjob>
 <teccode>900017</teccode>
 <code></code>
-<name>IMPRESIÓN A TODO COLOR</name>
+<name>IMPRESIÓN A TODO COLOR
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2553,7 +2611,8 @@
 <printjob>
 <teccode>100115DP</teccode>
 <code>E</code>
-<name>TAMPOGRAFÍA E - DOBLE PASADA -</name>
+<name>TAMPOGRAFÍA E - DOBLE PASADA -
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -2819,7 +2878,8 @@
 <printjob>
 <teccode>100215DP</teccode>
 <code>E</code>
-<name>SERIGRAFÍA E - DOBLE PASADA -</name>
+<name>SERIGRAFÍA E - DOBLE PASADA -
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>
@@ -3009,7 +3069,8 @@
 <printjob>
 <teccode>101017</teccode>
 <code>B D10M</code>
-<name>TAMPOGRAFÍA B +10000 UDS</name>
+<name>TAMPOGRAFÍA B +10000 UDS
+</name>
 <minamount></minamount>
 <cliche>30</cliche>
 <clicherep>15</clicherep>

@@ -66,8 +66,23 @@ class RjMakitoPrintArea extends ObjectModel
         ],
     ];
 
-    public	function __construct($areacode = null, $id_lang = null, $id_shop = null, Context $context = null)
+    public function __construct($areacode = null, $id_lang = null, $id_shop = null, Context $context = null)
 	{
 		parent::__construct($areacode, $id_lang, $id_shop);
 	}
+
+    public function existe($reference, $teccode, $areacode) {
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow("
+			SELECT p.*
+			FROM `"._DB_PREFIX_."rj_makito_printareas` p
+			WHERE p.`reference` = '".$reference."'
+            AND p.`teccode` = '".$teccode."'
+            AND p.`areacode` = '".$areacode."'"
+		);
+
+        if($result){
+            return true;
+        }
+        return false;
+    }
 } 

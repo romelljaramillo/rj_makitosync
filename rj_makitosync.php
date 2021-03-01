@@ -449,35 +449,20 @@ class Rj_MakitoSync extends Module
                 $includedcolour = '';
                 $count = 0;
                 // proceso de guardado node ItemPrintingFile
-                dump(count($datos));
+                // dump(count($datos));
                 foreach ($datos as $data) {
-                    
                     $printArea = new RjMakitoPrintArea();
+
                     $reference =$data['ref'];
                     $name = $data['name'];
-                    // dump($data['ref']);
-                    // dump($data['name']);
                     if($data['printjobs']['printjob']){
                         foreach ($data['printjobs'] as $printjob) {
                             if($printjob['teccode']){
-                                // dump($printjob['teccode']);
-                                // dump($printjob['tecname']);
-                                // dump($printjob['maxcolour']);
-                                // dump($printjob['includedcolour']);
-                                // dump($printjob['areas']['area']);
-
                                 $teccode = $printjob['teccode'];
                                 $tecname = $printjob['tecname'];
                                 $maxcolour = $printjob['maxcolour'];
                                 $includedcolour = $printjob['includedcolour'];
-
                                 if($printjob['areas']['area']['areacode']){
-                                    // dump($printjob['areas']['area']['areacode']);
-                                    // dump($printjob['areas']['area']['areaname']);
-                                    // dump($printjob['areas']['area']['areawidth']);
-                                    // dump($printjob['areas']['area']['areahight']);
-                                    // dump($printjob['areas']['area']['areaimg']);
-                                    
                                     $printArea->reference = $reference;
                                     $printArea->name = $name;
                                     $printArea->teccode = $teccode;
@@ -490,18 +475,20 @@ class Rj_MakitoSync extends Module
                                     $printArea->areahight = $printjob['areas']['area']['areahight'];
                                     $printArea->areaimg = $printjob['areas']['area']['areaimg'];
                                     // $printArea->add();
-                                    if (!$printArea->add()) {
-                                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+
+                                    $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+
+                                    if($result){
+                                        if (!$printArea->update()) {
+                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        }
+                                        $count++;
+                                    } elseif(!$printArea->add()) {
+                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
                                     }
 
                                 } else {
                                     foreach ($printjob['areas']['area'] as $area) {
-                                        // dump($area['areacode']);
-                                        // dump($area['areaname']);
-                                        // dump($area['areawidth']);
-                                        // dump($area['areahight']);
-                                        // dump($area['areaimg']);
-
                                         $printArea->reference = $reference;
                                         $printArea->name = $name;
                                         $printArea->teccode = $teccode;
@@ -513,35 +500,27 @@ class Rj_MakitoSync extends Module
                                         $printArea->areawidth = $area['areawidth'];
                                         $printArea->areahight = $area['areahight'];
                                         $printArea->areaimg = $area['areaimg'];
-                                        $test = $printArea->add();
-                                        dump($test);
+                                        
+                                        $result = $printArea->existe($reference, $teccode, $printArea->areacode);
 
-                                        if (!$printArea->add()) {
-                                            // dump('test');
-                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        if($result){
+                                            if (!$printArea->update()) {
+                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                            }
+                                            $count++;
+                                        } elseif(!$printArea->add()) {
+                                             $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
                                         }
-
                                     }
                                 }
                             } else {
                                 foreach ($printjob as $job) {
-                                    // dump($job['teccode']);
-                                    // dump($job['tecname']);
-                                    // dump($job['maxcolour']);
-                                    // dump($job['includedcolour']);
-                                    // dump($job['areas']['area']);
-
                                     $teccode = $job['teccode'];
                                     $tecname = $job['tecname'];
                                     $maxcolour = $job['maxcolour'];
                                     $includedcolour = $job['includedcolour'];
 
                                     if($job['areas']['area']['areacode']){
-                                        // dump($job['areas']['area']['areacode']);
-                                        // dump($job['areas']['area']['areaname']);
-                                        // dump($job['areas']['area']['areawidth']);
-                                        // dump($job['areas']['area']['areahight']);
-                                        // dump($job['areas']['area']['areaimg']);
 
                                         $printArea->reference = $reference;
                                         $printArea->name = $name;
@@ -554,18 +533,20 @@ class Rj_MakitoSync extends Module
                                         $printArea->areawidth = $job['areas']['area']['areawidth'];
                                         $printArea->areahight = $job['areas']['area']['areahight'];
                                         $printArea->areaimg = $job['areas']['area']['areaimg'];
-                                        if (!$printArea->add()) {
-                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        
+                                        $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+
+                                        if($result){
+                                            if (!$printArea->update()) {
+                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                            }
+                                            $count++;
+                                        } elseif(!$printArea->add()) {
+                                             $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
                                         }
 
                                     } else {
                                         foreach ($job['areas']['area'] as $area) {
-                                            // dump('2-----------------');
-                                            // dump($area['areacode']);
-                                            // dump($area['areaname']);
-                                            // dump($area['areawidth']);
-                                            // dump($area['areahight']);
-                                            // dump($area['areaimg']);
 
                                             $printArea->reference = $reference;
                                             $printArea->name = $name;
@@ -578,33 +559,27 @@ class Rj_MakitoSync extends Module
                                             $printArea->areawidth = $area['areawidth'];
                                             $printArea->areahight = $area['areahight'];
                                             $printArea->areaimg = $area['areaimg'];
-                                            if (!$printArea->add()) {
+                                            
+                                            $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+
+                                            if($result){
+                                                if (!$printArea->update()) {
+                                                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                                }
+                                                $count++;
+                                            } elseif(!$printArea->add()) {
                                                 $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
                                             }
-
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    $count++;
-                    
-                    // 
-                    // $update = true;
-                    // $printjobs = new RjMakitoPrintjobs((int)$data['teccode']);
-                    // if(is_null($printjobs->teccode))
-                    // {
-                    //     dump($printjobs->teccode);
-                    //     $printjobs = new RjMakitoPrintjobs();
-                    //     $update = false;
-                    //     $printjobs->teccode = $data['teccode'];
-
-                    // }
                 }
-                // dump($count);
-                // die();
-                return false;
+                dump($count);
+
+                // return false;
             }   
 
             if (count($errors)) {
@@ -620,7 +595,6 @@ class Rj_MakitoSync extends Module
     public function readXML($nameFile)
     {
         if(!is_null($nameFile)){
-            // dump($this->url_import . $nameFile);
             $xml = simplexml_load_file($this->url_import . $nameFile);
             if($this->nodeActual === 'PrintJobsPrices'){
                 $data = json_decode(json_encode($xml->printjobs), true);
@@ -629,9 +603,7 @@ class Rj_MakitoSync extends Module
                 $data = json_decode(json_encode($xml), true);
                 return $data['product'];
             }
-            // dump($data);
-            // dump($data->product);
-            // die();
+
         } else {
             return false;
         }
