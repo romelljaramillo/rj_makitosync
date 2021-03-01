@@ -449,17 +449,15 @@ class Rj_MakitoSync extends Module
                 $includedcolour = '';
                 $count = 0;
                 // proceso de guardado node ItemPrintingFile
+                dump(count($datos));
                 foreach ($datos as $data) {
-
+                    
                     $printArea = new RjMakitoPrintArea();
-                    // dump($data);
+                    $reference =$data['ref'];
+                    $name = $data['name'];
+                    // dump($data['ref']);
+                    // dump($data['name']);
                     if($data['printjobs']['printjob']){
-                        // dump($data['ref']);
-                        // dump($data['name']);
-                        
-                        $reference =$data['ref'];
-                        $name = $data['name'];
-
                         foreach ($data['printjobs'] as $printjob) {
                             if($printjob['teccode']){
                                 // dump($printjob['teccode']);
