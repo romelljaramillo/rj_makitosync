@@ -65,6 +65,21 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printjobs` (
     PRIMARY KEY  (`teccode`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
+$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printareas` (
+    `reference` varchar(50) NOT NULL,
+    `name` varchar(50) NOT NULL,
+    `teccode` varchar(50) NULL,
+    `tecname` varchar(50) NULL,
+    `maxcolour` INT(10) UNSIGNED NULL,
+    `includedcolour` INT(10) UNSIGNED NULL,
+    `areacode` INT(10) UNSIGNED NULL,
+    `areaname` varchar(50) NULL,
+    `areawidth` DECIMAL(20,6) NULL,
+    `areahight` DECIMAL(20,6) NULL,
+    `areaimg` varchar(250) NULL,
+    PRIMARY KEY  (`areacode`, `reference`, `teccode`)
+) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
+
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {
         return false;

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog>
+<date>11/02/2021</date>
+<product>
+<ref>3273</ref>
+<name>PALMER</name>
+<printjobs>
+<printjob>
+<teccode>100216</teccode>
+<tecname>SERIGRAFÍA F
+</tecname>
+<maxcolour>1</maxcolour>
+<includedcolour>1</includedcolour>
+<areas>
+<area>
+<areacode>481</areacode>
+<areaname>Centrado cara A</areaname>
+<areawidth>26.5</areawidth>
+<areahight>24</areahight>
+<areaimg>http://etools.boxpromotions.com/videos/3273/AREA/3273-A1.jpg
+</areaimg>
+</area>
+<area>
+<areacode>481</areacode>
+<areaname>Centrado cara A</areaname>
+<areawidth>26.5</areawidth>
+<areahight>24</areahight>
+<areaimg>http://etools.boxpromotions.com/videos/3273/AREA/3273-A1.jpg
+</areaimg>
+</area>
+</areas>
+</printjob>
+</printjobs>
+</product>
+</catalog>

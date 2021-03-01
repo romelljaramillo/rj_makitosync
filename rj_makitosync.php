@@ -34,6 +34,7 @@ if (file_exists($autoloadPath)) {
 }
 
 include_once(__DIR__ . '/classes/RjMakitoPrintjobs.php');
+include_once(__DIR__ . '/classes/RjMakitoPrintArea.php');
 
 class Rj_MakitoSync extends Module
 {
@@ -47,9 +48,10 @@ class Rj_MakitoSync extends Module
      *
      * @var array
      */
-    // protected $nodesDowload = ['PrintJobsPrices'];
-    protected $nodesDowload = ['PrintJobsPrices','ItemPrintingFile'];
+    protected $nodesDowload = ['ItemPrintingFile'];
+    // protected $nodesDowload = ['PrintJobsPrices','ItemPrintingFile'];
 
+    protected $nodeActual;
     /**
      * Nombre del parametro de api_key
      *
@@ -174,7 +176,7 @@ class Rj_MakitoSync extends Module
 
         if (Tools::isSubmit('manual_import')){
             $this->importAchives();
-            $this->setData();
+            
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
@@ -325,15 +327,19 @@ class Rj_MakitoSync extends Module
     public function importAchives()
     {
         foreach ($this->nodesDowload as $node) {
+            $this->nodeActual = $node;
             $data_ws = $this->getConfigFormValuesUrlService();
-            $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/'.$node.'.php?'.$this->namekey.'=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
-            dump($url);
-            $nameFile = date("Y-m-d").'-'. $node .'.xml';
+            $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/'.$this->nodeActual.'.php?'.$this->namekey.'=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
+            $nameFile = date("Y-m-d").'-'. $this->nodeActual .'.xml';
             
             if (file_exists($nameFile)) {
                 $this->_html .= $this->displayInformation("El fichero $nameFile existe");
             } else {
-                $this->getAPI($url, $nameFile);
+                // $this->getAPI($url, $nameFile);
+            }
+
+            if($this->nodeActual){
+                $this->setData($nameFile);
             }
         }
     }   
@@ -361,7 +367,6 @@ class Rj_MakitoSync extends Module
         }
 
         if ($correcto) {
-            $this->ficheroDescargado = $nameFile;
             $resultado = $nameFile;
         } else {
             $resultado = false;
@@ -370,80 +375,240 @@ class Rj_MakitoSync extends Module
         return $resultado;
     }
 
-    public function readXML()
-    {
-        if(!is_null($this->ficheroDescargado)){
-            $xml = simplexml_load_file($this->url_import . $this->ficheroDescargado);
-            $data = json_decode(json_encode($xml->printjobs), true);
-            return $data['printjob'];
-        } else {
-            return false;
-        }
-    }
-
-    public function setData() {
+    public function setData($file) {
 
         $errors = array();
-        $datos = $this->readXML();
-        if($datos) {
-            foreach ($datos as $data) {
-                $update = true;
-                
-                $printjobs = new RjMakitoPrintjobs((int)$data['teccode']);
-                if(is_null($printjobs->teccode))
-                {
-                    dump($printjobs->teccode);
-                    $printjobs = new RjMakitoPrintjobs();
-                    $update = false;
-                    $printjobs->teccode = $data['teccode'];
 
-                }
-                
-                $printjobs->code = $data['code'];
-                $printjobs->name = $data['name'];
-                $printjobs->minamount = $data['minamount'];
-                $printjobs->cliche = $data['cliche'];
-                $printjobs->clicherep = $data['clicherep'];
-                $printjobs->minjob = $data['minjob'];
-                $printjobs->amountunder1 = $data['amountunder1'];
-                $printjobs->price1 = $data['price1'];
-                $printjobs->priceaditionalcol1 = $data['priceaditionalcol1'];
-                $printjobs->pricecm1 = $data['pricecm1'];
-                $printjobs->amountunder2 = $data['amountunder2'];
-                $printjobs->price2 = $data['price2'];
-                $printjobs->priceaditionalcol2 = $data['priceaditionalcol2'];
-                $printjobs->pricecm2 = $data['pricecm2'];
-                $printjobs->amountunder3 = $data['amountunder3'];
-                $printjobs->price3 = $data['price3'];
-                $printjobs->priceaditionalcol3 = $data['priceaditionalcol3'];
-                $printjobs->pricecm3 = $data['pricecm3'];
-                $printjobs->amountunder4 = $data['amountunder4'];
-                $printjobs->price4 = $data['price4'];
-                $printjobs->priceaditionalcol4 = $data['priceaditionalcol4'];
-                $printjobs->pricecm4 = $data['pricecm4'];
-                $printjobs->amountunder5 = $data['amountunder5'];
-                $printjobs->price5 = $data['price5'];
-                $printjobs->priceaditionalcol5 = $data['priceaditionalcol5'];
-                $printjobs->pricecm5 = $data['pricecm5'];
-                $printjobs->amountunder6 = $data['amountunder6'];
-                $printjobs->price6 = $data['price6'];
-                $printjobs->priceaditionalcol6 = $data['priceaditionalcol6'];
-                $printjobs->pricecm6 = $data['pricecm6'];
-                $printjobs->amountunder7 = $data['amountunder7'];
-                $printjobs->price7 = $data['price7'];
-                $printjobs->priceaditionalcol7 = $data['priceaditionalcol7'];
-                $printjobs->pricecm7 = $data['pricecm7'];
-                $printjobs->terms = $data['terms'];
-                
-                if (!$update) {
-                    if (!$printjobs->add()) {
-                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+        $datos = $this->readXML($file);
+        
+        if($datos) {
+            if($this->nodeActual === 'PrintJobsPrices')
+            {
+                foreach ($datos as $data) {
+                    $update = true;
+                    $printjobs = new RjMakitoPrintjobs((int)$data['teccode']);
+                    if(is_null($printjobs->teccode))
+                    {
+                        // dump($printjobs->teccode);
+                        $printjobs = new RjMakitoPrintjobs();
+                        $update = false;
+                        $printjobs->teccode = $data['teccode'];
+
                     }
-                } elseif (!$printjobs->update()) {
-                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be updated.', array(), 'Modules.Imageslider.Admin'));
+                    
+                    $printjobs->code = $data['code'];
+                    $printjobs->name = $data['name'];
+                    $printjobs->minamount = $data['minamount'];
+                    $printjobs->cliche = $data['cliche'];
+                    $printjobs->clicherep = $data['clicherep'];
+                    $printjobs->minjob = $data['minjob'];
+                    $printjobs->amountunder1 = $data['amountunder1'];
+                    $printjobs->price1 = $data['price1'];
+                    $printjobs->priceaditionalcol1 = $data['priceaditionalcol1'];
+                    $printjobs->pricecm1 = $data['pricecm1'];
+                    $printjobs->amountunder2 = $data['amountunder2'];
+                    $printjobs->price2 = $data['price2'];
+                    $printjobs->priceaditionalcol2 = $data['priceaditionalcol2'];
+                    $printjobs->pricecm2 = $data['pricecm2'];
+                    $printjobs->amountunder3 = $data['amountunder3'];
+                    $printjobs->price3 = $data['price3'];
+                    $printjobs->priceaditionalcol3 = $data['priceaditionalcol3'];
+                    $printjobs->pricecm3 = $data['pricecm3'];
+                    $printjobs->amountunder4 = $data['amountunder4'];
+                    $printjobs->price4 = $data['price4'];
+                    $printjobs->priceaditionalcol4 = $data['priceaditionalcol4'];
+                    $printjobs->pricecm4 = $data['pricecm4'];
+                    $printjobs->amountunder5 = $data['amountunder5'];
+                    $printjobs->price5 = $data['price5'];
+                    $printjobs->priceaditionalcol5 = $data['priceaditionalcol5'];
+                    $printjobs->pricecm5 = $data['pricecm5'];
+                    $printjobs->amountunder6 = $data['amountunder6'];
+                    $printjobs->price6 = $data['price6'];
+                    $printjobs->priceaditionalcol6 = $data['priceaditionalcol6'];
+                    $printjobs->pricecm6 = $data['pricecm6'];
+                    $printjobs->amountunder7 = $data['amountunder7'];
+                    $printjobs->price7 = $data['price7'];
+                    $printjobs->priceaditionalcol7 = $data['priceaditionalcol7'];
+                    $printjobs->pricecm7 = $data['pricecm7'];
+                    $printjobs->terms = $data['terms'];
+                    
+                    if (!$update) {
+                        if (!$printjobs->add()) {
+                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                        }
+                    } elseif (!$printjobs->update()) {
+                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be updated.', array(), 'Modules.Imageslider.Admin'));
+                    }
                 }
-            }
-    
+            } else {
+                $reference = '';
+                $name = '';
+                $teccode = '';
+                $tecname = '';
+                $maxcolour = '';
+                $includedcolour = '';
+                $count = 0;
+                // proceso de guardado node ItemPrintingFile
+                foreach ($datos as $data) {
+
+                    $printArea = new RjMakitoPrintArea();
+                    // dump($data);
+                    if($data['printjobs']['printjob']){
+                        // dump($data['ref']);
+                        // dump($data['name']);
+                        
+                        $reference =$data['ref'];
+                        $name = $data['name'];
+
+                        foreach ($data['printjobs'] as $printjob) {
+                            if($printjob['teccode']){
+                                // dump($printjob['teccode']);
+                                // dump($printjob['tecname']);
+                                // dump($printjob['maxcolour']);
+                                // dump($printjob['includedcolour']);
+                                // dump($printjob['areas']['area']);
+
+                                $teccode = $printjob['teccode'];
+                                $tecname = $printjob['tecname'];
+                                $maxcolour = $printjob['maxcolour'];
+                                $includedcolour = $printjob['includedcolour'];
+
+                                if($printjob['areas']['area']['areacode']){
+                                    // dump($printjob['areas']['area']['areacode']);
+                                    // dump($printjob['areas']['area']['areaname']);
+                                    // dump($printjob['areas']['area']['areawidth']);
+                                    // dump($printjob['areas']['area']['areahight']);
+                                    // dump($printjob['areas']['area']['areaimg']);
+                                    
+                                    $printArea->reference = $reference;
+                                    $printArea->name = $name;
+                                    $printArea->teccode = $teccode;
+                                    $printArea->tecname = $tecname;
+                                    $printArea->maxcolour = $maxcolour;
+                                    $printArea->includedcolour = $includedcolour;
+                                    $printArea->areacode = $printjob['areas']['area']['areacode'];
+                                    $printArea->areaname = $printjob['areas']['area']['areaname'];
+                                    $printArea->areawidth = $printjob['areas']['area']['areawidth'];
+                                    $printArea->areahight = $printjob['areas']['area']['areahight'];
+                                    $printArea->areaimg = $printjob['areas']['area']['areaimg'];
+                                    // $printArea->add();
+                                    if (!$printArea->add()) {
+                                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                    }
+
+                                } else {
+                                    foreach ($printjob['areas']['area'] as $area) {
+                                        // dump($area['areacode']);
+                                        // dump($area['areaname']);
+                                        // dump($area['areawidth']);
+                                        // dump($area['areahight']);
+                                        // dump($area['areaimg']);
+
+                                        $printArea->reference = $reference;
+                                        $printArea->name = $name;
+                                        $printArea->teccode = $teccode;
+                                        $printArea->tecname = $tecname;
+                                        $printArea->maxcolour = $maxcolour;
+                                        $printArea->includedcolour = $includedcolour;
+                                        $printArea->areacode = $area['areacode'];
+                                        $printArea->areaname = $area['areaname'];
+                                        $printArea->areawidth = $area['areawidth'];
+                                        $printArea->areahight = $area['areahight'];
+                                        $printArea->areaimg = $area['areaimg'];
+                                        $test = $printArea->add();
+                                        dump($test);
+
+                                        if (!$printArea->add()) {
+                                            // dump('test');
+                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        }
+
+                                    }
+                                }
+                            } else {
+                                foreach ($printjob as $job) {
+                                    // dump($job['teccode']);
+                                    // dump($job['tecname']);
+                                    // dump($job['maxcolour']);
+                                    // dump($job['includedcolour']);
+                                    // dump($job['areas']['area']);
+
+                                    $teccode = $job['teccode'];
+                                    $tecname = $job['tecname'];
+                                    $maxcolour = $job['maxcolour'];
+                                    $includedcolour = $job['includedcolour'];
+
+                                    if($job['areas']['area']['areacode']){
+                                        // dump($job['areas']['area']['areacode']);
+                                        // dump($job['areas']['area']['areaname']);
+                                        // dump($job['areas']['area']['areawidth']);
+                                        // dump($job['areas']['area']['areahight']);
+                                        // dump($job['areas']['area']['areaimg']);
+
+                                        $printArea->reference = $reference;
+                                        $printArea->name = $name;
+                                        $printArea->teccode = $teccode;
+                                        $printArea->tecname = $tecname;
+                                        $printArea->maxcolour = $maxcolour;
+                                        $printArea->includedcolour = $includedcolour;
+                                        $printArea->areacode = $job['areas']['area']['areacode'];
+                                        $printArea->areaname = $job['areas']['area']['areaname'];
+                                        $printArea->areawidth = $job['areas']['area']['areawidth'];
+                                        $printArea->areahight = $job['areas']['area']['areahight'];
+                                        $printArea->areaimg = $job['areas']['area']['areaimg'];
+                                        if (!$printArea->add()) {
+                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        }
+
+                                    } else {
+                                        foreach ($job['areas']['area'] as $area) {
+                                            // dump('2-----------------');
+                                            // dump($area['areacode']);
+                                            // dump($area['areaname']);
+                                            // dump($area['areawidth']);
+                                            // dump($area['areahight']);
+                                            // dump($area['areaimg']);
+
+                                            $printArea->reference = $reference;
+                                            $printArea->name = $name;
+                                            $printArea->teccode = $teccode;
+                                            $printArea->tecname = $tecname;
+                                            $printArea->maxcolour = $maxcolour;
+                                            $printArea->includedcolour = $includedcolour;
+                                            $printArea->areacode = $area['areacode'];
+                                            $printArea->areaname = $area['areaname'];
+                                            $printArea->areawidth = $area['areawidth'];
+                                            $printArea->areahight = $area['areahight'];
+                                            $printArea->areaimg = $area['areaimg'];
+                                            if (!$printArea->add()) {
+                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $count++;
+                    
+                    // 
+                    // $update = true;
+                    // $printjobs = new RjMakitoPrintjobs((int)$data['teccode']);
+                    // if(is_null($printjobs->teccode))
+                    // {
+                    //     dump($printjobs->teccode);
+                    //     $printjobs = new RjMakitoPrintjobs();
+                    //     $update = false;
+                    //     $printjobs->teccode = $data['teccode'];
+
+                    // }
+                }
+                // dump($count);
+                // die();
+                return false;
+            }   
+
             if (count($errors)) {
                 $this->_html .= $this->displayError(implode('<br />', $errors));
             } elseif (Tools::isSubmit('manual_import') && $update) {
@@ -451,6 +616,26 @@ class Rj_MakitoSync extends Module
             } elseif (Tools::isSubmit('manual_import') && !$update) {
                 Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
             }
+        }
+    }
+
+    public function readXML($nameFile)
+    {
+        if(!is_null($nameFile)){
+            // dump($this->url_import . $nameFile);
+            $xml = simplexml_load_file($this->url_import . $nameFile);
+            if($this->nodeActual === 'PrintJobsPrices'){
+                $data = json_decode(json_encode($xml->printjobs), true);
+                return $data['printjob'];
+            } else {
+                $data = json_decode(json_encode($xml), true);
+                return $data['product'];
+            }
+            // dump($data);
+            // dump($data->product);
+            // die();
+        } else {
+            return false;
         }
     }
 
