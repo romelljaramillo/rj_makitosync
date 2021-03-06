@@ -49,12 +49,12 @@ class RjMakitoPrintArea extends ObjectModel
      */
     public static $definition = [
         'table' => 'rj_makito_printareas',
-        'primary' => 'areacode',
+        'primary' => 'reference',
         'fields' => [
             // Config fields
             'reference'     => ['type' => self::TYPE_STRING, 'required' => true],
             'name'          => ['type' => self::TYPE_STRING, 'required' => true],
-            'teccode'       => ['type' => self::TYPE_STRING],
+            'teccode'       => ['type' => self::TYPE_STRING, 'required' => true],
             'tecname'       => ['type' => self::TYPE_STRING],
             'maxcolour'     => ['type' => self::TYPE_INT],
             'includedcolour'=> ['type' => self::TYPE_INT],
@@ -65,11 +65,6 @@ class RjMakitoPrintArea extends ObjectModel
             'areaimg'       => ['type' => self::TYPE_STRING],
         ],
     ];
-
-    public function __construct($areacode = null, $id_lang = null, $id_shop = null, Context $context = null)
-	{
-		parent::__construct($areacode, $id_lang, $id_shop);
-	}
 
     public function existe($reference, $teccode, $areacode) {
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow("

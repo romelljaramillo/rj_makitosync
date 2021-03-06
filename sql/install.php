@@ -77,7 +77,8 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printareas` (
     `areawidth` DECIMAL(20,6) NULL,
     `areahight` DECIMAL(20,6) NULL,
     `areaimg` varchar(250) NULL,
-    PRIMARY KEY  (`areacode`, `reference`, `teccode`)
+    PRIMARY KEY  (`reference`, `teccode`),
+    INDEX `areacode` (`areacode`) USING BTREE
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
 foreach ($sql as $query) {

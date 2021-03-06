@@ -449,58 +449,35 @@ class Rj_MakitoSync extends Module
                 $includedcolour = '';
                 $count = 0;
                 // proceso de guardado node ItemPrintingFile
-                // dump(count($datos));
+                
                 foreach ($datos as $data) {
                     $printArea = new RjMakitoPrintArea();
 
                     $reference =$data['ref'];
                     $name = $data['name'];
-                    if($data['printjobs']['printjob']){
+                    
+                    if(isset($data['printjobs']['printjob'])){
                         foreach ($data['printjobs'] as $printjob) {
-                            if($printjob['teccode']){
+                            if(isset($printjob['teccode'])){
                                 $teccode = $printjob['teccode'];
                                 $tecname = $printjob['tecname'];
                                 $maxcolour = $printjob['maxcolour'];
                                 $includedcolour = $printjob['includedcolour'];
-                                if($printjob['areas']['area']['areacode']){
-                                    $printArea->reference = $reference;
-                                    $printArea->name = $name;
-                                    $printArea->teccode = $teccode;
-                                    $printArea->tecname = $tecname;
-                                    $printArea->maxcolour = $maxcolour;
-                                    $printArea->includedcolour = $includedcolour;
-                                    $printArea->areacode = $printjob['areas']['area']['areacode'];
-                                    $printArea->areaname = $printjob['areas']['area']['areaname'];
-                                    $printArea->areawidth = $printjob['areas']['area']['areawidth'];
-                                    $printArea->areahight = $printjob['areas']['area']['areahight'];
-                                    $printArea->areaimg = $printjob['areas']['area']['areaimg'];
-                                    // $printArea->add();
-
-                                    $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-
-                                    if($result){
-                                        if (!$printArea->update()) {
-                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                        }
-                                        $count++;
-                                    } elseif(!$printArea->add()) {
-                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                    }
-
-                                } else {
-                                    foreach ($printjob['areas']['area'] as $area) {
+                                
+                                if(isset($printjob['areas']['area'])){
+                                    if(isset($printjob['areas']['area']['areacode'])){
                                         $printArea->reference = $reference;
                                         $printArea->name = $name;
                                         $printArea->teccode = $teccode;
                                         $printArea->tecname = $tecname;
                                         $printArea->maxcolour = $maxcolour;
                                         $printArea->includedcolour = $includedcolour;
-                                        $printArea->areacode = $area['areacode'];
-                                        $printArea->areaname = $area['areaname'];
-                                        $printArea->areawidth = $area['areawidth'];
-                                        $printArea->areahight = $area['areahight'];
-                                        $printArea->areaimg = $area['areaimg'];
-                                        
+                                        $printArea->areacode = $printjob['areas']['area']['areacode'];
+                                        $printArea->areaname = $printjob['areas']['area']['areaname'];
+                                        $printArea->areawidth = $printjob['areas']['area']['areawidth'];
+                                        $printArea->areahight = $printjob['areas']['area']['areahight'];
+                                        $printArea->areaimg = $printjob['areas']['area']['areaimg'];
+
                                         $result = $printArea->existe($reference, $teccode, $printArea->areacode);
 
                                         if($result){
@@ -509,45 +486,11 @@ class Rj_MakitoSync extends Module
                                             }
                                             $count++;
                                         } elseif(!$printArea->add()) {
-                                             $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                        }
-                                    }
-                                }
-                            } else {
-                                foreach ($printjob as $job) {
-                                    $teccode = $job['teccode'];
-                                    $tecname = $job['tecname'];
-                                    $maxcolour = $job['maxcolour'];
-                                    $includedcolour = $job['includedcolour'];
-
-                                    if($job['areas']['area']['areacode']){
-
-                                        $printArea->reference = $reference;
-                                        $printArea->name = $name;
-                                        $printArea->teccode = $teccode;
-                                        $printArea->tecname = $tecname;
-                                        $printArea->maxcolour = $maxcolour;
-                                        $printArea->includedcolour = $includedcolour;
-                                        $printArea->areacode = $job['areas']['area']['areacode'];
-                                        $printArea->areaname = $job['areas']['area']['areaname'];
-                                        $printArea->areawidth = $job['areas']['area']['areawidth'];
-                                        $printArea->areahight = $job['areas']['area']['areahight'];
-                                        $printArea->areaimg = $job['areas']['area']['areaimg'];
-                                        
-                                        $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-
-                                        if($result){
-                                            if (!$printArea->update()) {
                                                 $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                            }
-                                            $count++;
-                                        } elseif(!$printArea->add()) {
-                                             $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
                                         }
 
                                     } else {
-                                        foreach ($job['areas']['area'] as $area) {
-
+                                        foreach ($printjob['areas']['area'] as $area) {
                                             $printArea->reference = $reference;
                                             $printArea->name = $name;
                                             $printArea->teccode = $teccode;
@@ -572,14 +515,123 @@ class Rj_MakitoSync extends Module
                                             }
                                         }
                                     }
+                                } else {
+                                    // cuando no tiene area impresión
+                                    $printArea->reference = $reference;
+                                    $printArea->name = $name;
+                                    $printArea->teccode = $teccode;
+                                    $printArea->tecname = $tecname;
+                                    $printArea->maxcolour = $maxcolour;
+                                    $printArea->includedcolour = $includedcolour;
+                                    $printArea->areacode = null;
+                                    $printArea->areaname = null;
+                                    $printArea->areawidth = null;
+                                    $printArea->areahight = null;
+                                    $printArea->areaimg = null;
+                                    
+                                    $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+
+                                    if($result){
+                                        if (!$printArea->update()) {
+                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        }
+                                        $count++;
+                                    } elseif(!$printArea->add()) {
+                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                    }
+                                }
+                            } else {
+                                foreach ($printjob as $job) {
+                                    $teccode = $job['teccode'];
+                                    $tecname = $job['tecname'];
+                                    $maxcolour = $job['maxcolour'];
+                                    $includedcolour = $job['includedcolour'];
+
+                                    if(isset($job['areas']['area'])){
+                                        if(isset($job['areas']['area']['areacode'])){
+    
+                                            $printArea->reference = $reference;
+                                            $printArea->name = $name;
+                                            $printArea->teccode = $teccode;
+                                            $printArea->tecname = $tecname;
+                                            $printArea->maxcolour = $maxcolour;
+                                            $printArea->includedcolour = $includedcolour;
+                                            $printArea->areacode = $job['areas']['area']['areacode'];
+                                            $printArea->areaname = $job['areas']['area']['areaname'];
+                                            $printArea->areawidth = $job['areas']['area']['areawidth'];
+                                            $printArea->areahight = $job['areas']['area']['areahight'];
+                                            $printArea->areaimg = $job['areas']['area']['areaimg'];
+                                            
+                                            $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+    
+                                            if($result){
+                                                if (!$printArea->update()) {
+                                                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                                }
+                                                $count++;
+                                            } elseif(!$printArea->add()) {
+                                                 $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                            }
+    
+                                        } else {
+                                            foreach ($job['areas']['area'] as $area) {
+    
+                                                $printArea->reference = $reference;
+                                                $printArea->name = $name;
+                                                $printArea->teccode = $teccode;
+                                                $printArea->tecname = $tecname;
+                                                $printArea->maxcolour = $maxcolour;
+                                                $printArea->includedcolour = $includedcolour;
+                                                $printArea->areacode = $area['areacode'];
+                                                $printArea->areaname = $area['areaname'];
+                                                $printArea->areawidth = $area['areawidth'];
+                                                $printArea->areahight = $area['areahight'];
+                                                $printArea->areaimg = $area['areaimg'];
+                                                
+                                                $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+    
+                                                if($result){
+                                                    if (!$printArea->update()) {
+                                                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                                    }
+                                                    $count++;
+                                                } elseif(!$printArea->add()) {
+                                                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                                }
+                                            }
+                                        }
+
+                                    } else {
+                                        // cuando no tiene area impresión
+                                        $printArea->reference = $reference;
+                                        $printArea->name = $name;
+                                        $printArea->teccode = $teccode;
+                                        $printArea->tecname = $tecname;
+                                        $printArea->maxcolour = $maxcolour;
+                                        $printArea->includedcolour = $includedcolour;
+                                        $printArea->areacode = null;
+                                        $printArea->areaname = null;
+                                        $printArea->areawidth = null;
+                                        $printArea->areahight = null;
+                                        $printArea->areaimg = null;
+                                        
+                                        $result = $printArea->existe($reference, $teccode, $printArea->areacode);
+
+                                        if($result){
+                                            if (!$printArea->update()) {
+                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                            }
+                                            $count++;
+                                        } elseif(!$printArea->add()) {
+                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                                        }
+                                    }
+
                                 }
                             }
                         }
                     }
                 }
-                dump($count);
-
-                // return false;
             }   
 
             if (count($errors)) {

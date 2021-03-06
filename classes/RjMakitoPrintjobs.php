@@ -235,9 +235,4 @@ class RjMakitoPrintjobs extends ObjectModel
             'terms'              => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml'],
         ],
     ];
-
-    public	function __construct($teccode = null, $id_lang = null, $id_shop = null, Context $context = null)
-	{
-		parent::__construct($teccode, $id_lang, $id_shop);
-	}
 }
