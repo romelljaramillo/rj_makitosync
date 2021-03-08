@@ -30,8 +30,8 @@
  * but does not want to loose all of the data associated to the module.
  */
 $sql = array();
-$sql[] = 'DROP TABLE IF EXISTS `'. _DB_PREFIX_ . 'rj_makito_printjobs`';
-$sql[] = 'DROP TABLE IF EXISTS `'. _DB_PREFIX_ . 'rj_makito_printareas`';
+$sql[] = 'DROP TABLE IF EXISTS `'. _DB_PREFIX_ . 'rjmakito_printjobs`';
+$sql[] = 'DROP TABLE IF EXISTS `'. _DB_PREFIX_ . 'rjmakito_itemprint`';
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {
         return false;

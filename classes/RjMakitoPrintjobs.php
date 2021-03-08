@@ -193,8 +193,8 @@ class RjMakitoPrintjobs extends ObjectModel
      * @see ObjectModel::$definition
      */
     public static $definition = [
-        'table' => 'rj_makito_printjobs',
-        'primary' => 'teccode',
+        'table' => 'rjmakito_printjobs',
+        'primary' => 'id_rjmakito_printjobs',
         'fields' => [
             // Config fields
             'teccode'            => ['type' => self::TYPE_STRING, 'required' => true],

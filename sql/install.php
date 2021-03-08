@@ -25,7 +25,8 @@
 */
 $sql = array();
 
-$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printjobs` (
+$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_printjobs` (
+    `id_rjmakito_printjobs` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `teccode` varchar(50) NOT NULL,
     `code` varchar(50) NULL,
     `name` varchar(100) NOT NULL,
@@ -62,10 +63,11 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printjobs` (
     `priceaditionalcol7` DECIMAL(20,6) NULL, 
     `pricecm7` DECIMAL(20,6) NULL, 
     `terms` TEXT NULL DEFAULT NULL COLLATE utf8mb4_general_ci,
-    PRIMARY KEY  (`teccode`)
+    PRIMARY KEY  (`id_rjmakito_printjobs`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
-$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printareas` (
+$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_itemprint` (
+    `id_rjmakito_itemprint` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `reference` varchar(50) NOT NULL,
     `name` varchar(50) NOT NULL,
     `teccode` varchar(50) NULL,
@@ -77,8 +79,7 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rj_makito_printareas` (
     `areawidth` DECIMAL(20,6) NULL,
     `areahight` DECIMAL(20,6) NULL,
     `areaimg` varchar(250) NULL,
-    PRIMARY KEY  (`reference`, `teccode`),
-    INDEX `areacode` (`areacode`) USING BTREE
+    PRIMARY KEY  (`id_rjmakito_itemprint`,`reference`,`teccode`,`areacode`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
 foreach ($sql as $query) {

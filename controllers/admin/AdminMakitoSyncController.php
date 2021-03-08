@@ -27,7 +27,7 @@ class AdminMakitoSyncController extends ModuleAdminController
         $this->lang = false;
         parent::__construct();
         $this->context = Context::getContext();
-        $this->table = 'rj_makito_printjobs';
+        $this->table = 'rjmakito_printjobs';
         $this->className = 'RjMakitoPrintjobs';
         $this->allow_export = true;
         $this->identifier = 'teccode';

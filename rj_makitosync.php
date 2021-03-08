@@ -34,7 +34,7 @@ if (file_exists($autoloadPath)) {
 }
 
 include_once(__DIR__ . '/classes/RjMakitoPrintjobs.php');
-include_once(__DIR__ . '/classes/RjMakitoPrintArea.php');
+include_once(__DIR__ . '/classes/RjMakitoItemPrint.php');
 
 class Rj_MakitoSync extends Module
 {
@@ -42,13 +42,18 @@ class Rj_MakitoSync extends Module
     protected $config_form = false;
     private $url_import = '';
     private $ficheroDescargado;
+    private $errors = array();
+    private $newsPrintJobs = 0;
+    private $newsItemPrint = 0;
+    private $duplicadosPrintJobs = 0;
+    private $duplicadosItemPrint = 0;
 
     /**
      * url de donde se descargan los xml
      *
      * @var array
      */
-    protected $nodesDowload = ['ItemPrintingFile'];
+    protected $nodesDowload = ['PrintJobsPrices'];
     // protected $nodesDowload = ['PrintJobsPrices','ItemPrintingFile'];
 
     protected $nodeActual;
@@ -335,13 +340,25 @@ class Rj_MakitoSync extends Module
             if (file_exists($nameFile)) {
                 $this->_html .= $this->displayInformation("El fichero $nameFile existe");
             } else {
-                // $this->getAPI($url, $nameFile);
+                $this->getAPI($url, $nameFile);
             }
 
             if($this->nodeActual){
                 $this->setData($nameFile);
             }
         }
+
+        dump($this->newsPrintJobs);        
+        dump($this->duplicadosPrintJobs);
+        dump($this->newsItemPrint);        
+        dump($this->duplicadosItemPrint);
+        
+
+        // if (count($this->errors)) {
+        //     $this->_html .= $this->displayError(implode('<br />', $this->errors));
+        // } else {
+        //     Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
+        // }
     }   
 
     protected function getAPI($url, $nameFile) {
@@ -377,271 +394,203 @@ class Rj_MakitoSync extends Module
 
     public function setData($file) {
 
-        $errors = array();
-
         $datos = $this->readXML($file);
         
         if($datos) {
             if($this->nodeActual === 'PrintJobsPrices')
             {
                 foreach ($datos as $data) {
-                    $update = true;
-                    $printjobs = new RjMakitoPrintjobs((int)$data['teccode']);
-                    if(is_null($printjobs->teccode))
-                    {
-                        // dump($printjobs->teccode);
-                        $printjobs = new RjMakitoPrintjobs();
-                        $update = false;
-                        $printjobs->teccode = $data['teccode'];
+                    
+                    $idPrintJobs = $this->existePrintJobs($data['teccode']);
 
+                    if(!isset($idPrintJobs)){
+                        $printjobs = new RjMakitoPrintjobs();
+                        $this->newsPrintJobs++;
+                    } else {
+                        $printjobs = new RjMakitoPrintjobs($idPrintJobs);
+                        $this->duplicadosPrintJobs++;
                     }
+                    // dump((int)$data['minamount']);
+                    // die();
+                    $printjobs->teccode = (isset($data['teccode']))?$data['teccode']:null;
+                    $printjobs->code = (isset($data['code']))?$data['code']:null;
+                    $printjobs->name = (isset($data['name']))?$data['name']:null;
+                    $printjobs->minamount = (isset($data['minamount']))?(int)$data['minamount']:null;
+                    $printjobs->cliche = (isset($data['cliche']))?$data['cliche']:null;
+                    $printjobs->clicherep = (isset($data['clicherep']))?$data['clicherep']:null;
+                    $printjobs->minjob = (isset($data['minjob']))?(int)$data['minjob']:null;
+                    $printjobs->amountunder1 = (isset($data['amountunder1']))?(int)$data['amountunder1']:null;
+                    $printjobs->price1 = (isset($data['price1']))?$data['price1']:null;
+                    $printjobs->priceaditionalcol1 = (isset($data['priceaditionalcol1']))?$data['priceaditionalcol1']:null;
+                    $printjobs->pricecm1 = (isset($data['pricecm1']))?$data['pricecm1']:null;
+                    $printjobs->amountunder2 = (isset($data['amountunder2']))?(int)$data['amountunder2']:null;
+                    $printjobs->price2 = (isset($data['price2']))?$data['price2']:null;
+                    $printjobs->priceaditionalcol2 = (isset($data['priceaditionalcol2']))?$data['priceaditionalcol2']:null;
+                    $printjobs->pricecm2 = (isset($data['pricecm2']))?$data['pricecm2']:null;
+                    $printjobs->amountunder3 = (isset($data['amountunder3']))?(int)$data['amountunder3']:null;
+                    $printjobs->price3 = (isset($data['price3']))?$data['price3']:null;
+                    $printjobs->priceaditionalcol3 = (isset($data['priceaditionalcol3']))?$data['priceaditionalcol3']:null;
+                    $printjobs->pricecm3 = (isset($data['pricecm3']))?$data['pricecm3']:null;
+                    $printjobs->amountunder4 = (isset($data['amountunder4']))?(int)$data['amountunder4']:null;
+                    $printjobs->price4 = (isset($data['price4']))?$data['price4']:null;
+                    $printjobs->priceaditionalcol4 = (isset($data['priceaditionalcol4']))?$data['priceaditionalcol4']:null;
+                    $printjobs->pricecm4 = (isset($data['pricecm4']))?$data['pricecm4']:null;
+                    $printjobs->amountunder5 = (isset($data['amountunder5']))?(int)$data['amountunder5']:null;
+                    $printjobs->price5 = (isset($data['price5']))?$data['price5']:null;
+                    $printjobs->priceaditionalcol5 = (isset($data['priceaditionalcol5']))?$data['priceaditionalcol5']:null;
+                    $printjobs->pricecm5 = (isset($data['pricecm5']))?$data['pricecm5']:null;
+                    $printjobs->amountunder6 = (isset($data['amountunder6']))?(int)$data['amountunder6']:null;
+                    $printjobs->price6 = (isset($data['price6']))?$data['price6']:null;
+                    $printjobs->priceaditionalcol6 = (isset($data['priceaditionalcol6']))?$data['priceaditionalcol6']:null;
+                    $printjobs->pricecm6 = (isset($data['pricecm6']))?$data['pricecm6']:null;
+                    $printjobs->amountunder7 = (isset($data['amountunder7']))?(int)$data['amountunder7']:null;
+                    $printjobs->price7 = (isset($data['price7']))?$data['price7']:null;
+                    $printjobs->priceaditionalcol7 = (isset($data['priceaditionalcol7']))?$data['priceaditionalcol7']:null;
+                    $printjobs->pricecm7 = (isset($data['pricecm7']))?$data['pricecm7']:null;
+                    $printjobs->terms = (isset($data['terms']))?$data['terms']:null;
                     
-                    $printjobs->code = $data['code'];
-                    $printjobs->name = $data['name'];
-                    $printjobs->minamount = $data['minamount'];
-                    $printjobs->cliche = $data['cliche'];
-                    $printjobs->clicherep = $data['clicherep'];
-                    $printjobs->minjob = $data['minjob'];
-                    $printjobs->amountunder1 = $data['amountunder1'];
-                    $printjobs->price1 = $data['price1'];
-                    $printjobs->priceaditionalcol1 = $data['priceaditionalcol1'];
-                    $printjobs->pricecm1 = $data['pricecm1'];
-                    $printjobs->amountunder2 = $data['amountunder2'];
-                    $printjobs->price2 = $data['price2'];
-                    $printjobs->priceaditionalcol2 = $data['priceaditionalcol2'];
-                    $printjobs->pricecm2 = $data['pricecm2'];
-                    $printjobs->amountunder3 = $data['amountunder3'];
-                    $printjobs->price3 = $data['price3'];
-                    $printjobs->priceaditionalcol3 = $data['priceaditionalcol3'];
-                    $printjobs->pricecm3 = $data['pricecm3'];
-                    $printjobs->amountunder4 = $data['amountunder4'];
-                    $printjobs->price4 = $data['price4'];
-                    $printjobs->priceaditionalcol4 = $data['priceaditionalcol4'];
-                    $printjobs->pricecm4 = $data['pricecm4'];
-                    $printjobs->amountunder5 = $data['amountunder5'];
-                    $printjobs->price5 = $data['price5'];
-                    $printjobs->priceaditionalcol5 = $data['priceaditionalcol5'];
-                    $printjobs->pricecm5 = $data['pricecm5'];
-                    $printjobs->amountunder6 = $data['amountunder6'];
-                    $printjobs->price6 = $data['price6'];
-                    $printjobs->priceaditionalcol6 = $data['priceaditionalcol6'];
-                    $printjobs->pricecm6 = $data['pricecm6'];
-                    $printjobs->amountunder7 = $data['amountunder7'];
-                    $printjobs->price7 = $data['price7'];
-                    $printjobs->priceaditionalcol7 = $data['priceaditionalcol7'];
-                    $printjobs->pricecm7 = $data['pricecm7'];
-                    $printjobs->terms = $data['terms'];
-                    
-                    if (!$update) {
+                    if(!isset($idPrintJobs)){
                         if (!$printjobs->add()) {
-                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
+                            $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
                         }
-                    } elseif (!$printjobs->update()) {
-                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be updated.', array(), 'Modules.Imageslider.Admin'));
+                    } elseif(!$printjobs->update()) {
+                        $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
                     }
+                   
                 }
             } else {
-                $reference = '';
-                $name = '';
-                $teccode = '';
-                $tecname = '';
-                $maxcolour = '';
-                $includedcolour = '';
-                $count = 0;
-                // proceso de guardado node ItemPrintingFile
-                
                 foreach ($datos as $data) {
-                    $printArea = new RjMakitoPrintArea();
-
-                    $reference =$data['ref'];
-                    $name = $data['name'];
-                    
+                    $arrayPrintjob = array();
+                    $arrayPrintjob['reference'] = $data['ref'];
+                    $arrayPrintjob['name'] = $data['name'];
                     if(isset($data['printjobs']['printjob'])){
                         foreach ($data['printjobs'] as $printjob) {
                             if(isset($printjob['teccode'])){
-                                $teccode = $printjob['teccode'];
-                                $tecname = $printjob['tecname'];
-                                $maxcolour = $printjob['maxcolour'];
-                                $includedcolour = $printjob['includedcolour'];
-                                
+                                $arrayPrintjob['teccode'] = $printjob['teccode'];
+                                $arrayPrintjob['tecname'] = $printjob['tecname'];
+                                $arrayPrintjob['maxcolour'] = $printjob['maxcolour'];
+                                $arrayPrintjob['includedcolour'] = $printjob['includedcolour'];
                                 if(isset($printjob['areas']['area'])){
                                     if(isset($printjob['areas']['area']['areacode'])){
-                                        $printArea->reference = $reference;
-                                        $printArea->name = $name;
-                                        $printArea->teccode = $teccode;
-                                        $printArea->tecname = $tecname;
-                                        $printArea->maxcolour = $maxcolour;
-                                        $printArea->includedcolour = $includedcolour;
-                                        $printArea->areacode = $printjob['areas']['area']['areacode'];
-                                        $printArea->areaname = $printjob['areas']['area']['areaname'];
-                                        $printArea->areawidth = $printjob['areas']['area']['areawidth'];
-                                        $printArea->areahight = $printjob['areas']['area']['areahight'];
-                                        $printArea->areaimg = $printjob['areas']['area']['areaimg'];
-
-                                        $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-
-                                        if($result){
-                                            if (!$printArea->update()) {
-                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                            }
-                                            $count++;
-                                        } elseif(!$printArea->add()) {
-                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                        }
-
+                                        $area = $this->processAreas($printjob['areas']['area']);
+                                        $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                                        $this->saveItemPrint($arrayPrintjob);
                                     } else {
                                         foreach ($printjob['areas']['area'] as $area) {
-                                            $printArea->reference = $reference;
-                                            $printArea->name = $name;
-                                            $printArea->teccode = $teccode;
-                                            $printArea->tecname = $tecname;
-                                            $printArea->maxcolour = $maxcolour;
-                                            $printArea->includedcolour = $includedcolour;
-                                            $printArea->areacode = $area['areacode'];
-                                            $printArea->areaname = $area['areaname'];
-                                            $printArea->areawidth = $area['areawidth'];
-                                            $printArea->areahight = $area['areahight'];
-                                            $printArea->areaimg = $area['areaimg'];
-                                            
-                                            $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-
-                                            if($result){
-                                                if (!$printArea->update()) {
-                                                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                                }
-                                                $count++;
-                                            } elseif(!$printArea->add()) {
-                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                            }
+                                            $area = $this->processAreas($area);
+                                            $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                                            $this->saveItemPrint($arrayPrintjob);
                                         }
                                     }
                                 } else {
                                     // cuando no tiene area impresión
-                                    $printArea->reference = $reference;
-                                    $printArea->name = $name;
-                                    $printArea->teccode = $teccode;
-                                    $printArea->tecname = $tecname;
-                                    $printArea->maxcolour = $maxcolour;
-                                    $printArea->includedcolour = $includedcolour;
-                                    $printArea->areacode = null;
-                                    $printArea->areaname = null;
-                                    $printArea->areawidth = null;
-                                    $printArea->areahight = null;
-                                    $printArea->areaimg = null;
-                                    
-                                    $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-
-                                    if($result){
-                                        if (!$printArea->update()) {
-                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                        }
-                                        $count++;
-                                    } elseif(!$printArea->add()) {
-                                            $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                    }
+                                    $area = $this->processAreas();
+                                    $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                                    $this->saveItemPrint($arrayPrintjob);
                                 }
                             } else {
                                 foreach ($printjob as $job) {
-                                    $teccode = $job['teccode'];
-                                    $tecname = $job['tecname'];
-                                    $maxcolour = $job['maxcolour'];
-                                    $includedcolour = $job['includedcolour'];
-
+                                    $arrayPrintjob['teccode'] = $job['teccode'];
+                                    $arrayPrintjob['tecname'] = $job['tecname'];
+                                    $arrayPrintjob['maxcolour'] = $job['maxcolour'];
+                                    $arrayPrintjob['includedcolour'] = $job['includedcolour'];
                                     if(isset($job['areas']['area'])){
                                         if(isset($job['areas']['area']['areacode'])){
-    
-                                            $printArea->reference = $reference;
-                                            $printArea->name = $name;
-                                            $printArea->teccode = $teccode;
-                                            $printArea->tecname = $tecname;
-                                            $printArea->maxcolour = $maxcolour;
-                                            $printArea->includedcolour = $includedcolour;
-                                            $printArea->areacode = $job['areas']['area']['areacode'];
-                                            $printArea->areaname = $job['areas']['area']['areaname'];
-                                            $printArea->areawidth = $job['areas']['area']['areawidth'];
-                                            $printArea->areahight = $job['areas']['area']['areahight'];
-                                            $printArea->areaimg = $job['areas']['area']['areaimg'];
-                                            
-                                            $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-    
-                                            if($result){
-                                                if (!$printArea->update()) {
-                                                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                                }
-                                                $count++;
-                                            } elseif(!$printArea->add()) {
-                                                 $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                            }
-    
+                                            $area = $this->processAreas($job['areas']['area']);
+                                            $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                                            $this->saveItemPrint($arrayPrintjob);
                                         } else {
                                             foreach ($job['areas']['area'] as $area) {
-    
-                                                $printArea->reference = $reference;
-                                                $printArea->name = $name;
-                                                $printArea->teccode = $teccode;
-                                                $printArea->tecname = $tecname;
-                                                $printArea->maxcolour = $maxcolour;
-                                                $printArea->includedcolour = $includedcolour;
-                                                $printArea->areacode = $area['areacode'];
-                                                $printArea->areaname = $area['areaname'];
-                                                $printArea->areawidth = $area['areawidth'];
-                                                $printArea->areahight = $area['areahight'];
-                                                $printArea->areaimg = $area['areaimg'];
-                                                
-                                                $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-    
-                                                if($result){
-                                                    if (!$printArea->update()) {
-                                                        $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                                    }
-                                                    $count++;
-                                                } elseif(!$printArea->add()) {
-                                                    $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                                }
+                                                $area = $this->processAreas($area);
+                                                $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                                                $this->saveItemPrint($arrayPrintjob);
                                             }
                                         }
-
                                     } else {
                                         // cuando no tiene area impresión
-                                        $printArea->reference = $reference;
-                                        $printArea->name = $name;
-                                        $printArea->teccode = $teccode;
-                                        $printArea->tecname = $tecname;
-                                        $printArea->maxcolour = $maxcolour;
-                                        $printArea->includedcolour = $includedcolour;
-                                        $printArea->areacode = null;
-                                        $printArea->areaname = null;
-                                        $printArea->areawidth = null;
-                                        $printArea->areahight = null;
-                                        $printArea->areaimg = null;
-                                        
-                                        $result = $printArea->existe($reference, $teccode, $printArea->areacode);
-
-                                        if($result){
-                                            if (!$printArea->update()) {
-                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                            }
-                                            $count++;
-                                        } elseif(!$printArea->add()) {
-                                                $errors[] = $this->displayError($this->getTranslator()->trans('The slide could not be added.', array(), 'Modules.Imageslider.Admin'));
-                                        }
+                                        $area = $this->processAreas();
+                                        $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                                        $this->saveItemPrint($arrayPrintjob);
                                     }
-
                                 }
                             }
                         }
                     }
                 }
             }   
-
-            if (count($errors)) {
-                $this->_html .= $this->displayError(implode('<br />', $errors));
-            } elseif (Tools::isSubmit('manual_import') && $update) {
-                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=4&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
-            } elseif (Tools::isSubmit('manual_import') && !$update) {
-                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
-            }
         }
+    }
+
+    private function processAreas($area=null)
+    {
+        $arrayArea = [];
+        $arrayArea['areacode'] =  (isset($area['areacode']))?$area['areacode']:null;
+        $arrayArea['areaname'] =  (isset($area['areaname']))?$area['areaname']:null;
+        $arrayArea['areawidth'] = (isset($area['areawidth']))?$area['areawidth']:null;
+        $arrayArea['areahight'] = (isset($area['areahight']))?$area['areahight']:null;
+        $arrayArea['areaimg'] =   (isset($area['areaimg']))?$area['areaimg']:null;
+
+        return $arrayArea;
+
+    }
+    
+    public function existePrintJobs($teccode) {
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow("
+			SELECT `id_rjmakito_printjobs` as id
+			FROM `"._DB_PREFIX_."rjmakito_printjobs` p
+			WHERE p.`teccode` = '".$teccode."'",
+            false
+		);
+
+        return $row['id'];
+    }
+
+    public function existeItemPrint($reference, $teccode, $areacode) {
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow("
+			SELECT `id_rjmakito_itemprint` as id
+			FROM `"._DB_PREFIX_."rjmakito_itemprint` p
+			WHERE p.`reference` = '".$reference."'
+            AND p.`teccode` = '".$teccode."'
+            AND p.`areacode` = ".(int)$areacode,
+            false
+		);
+
+        return $row['id'];
+    }
+
+    protected function saveItemPrint($arrayItemPrint) 
+    {
+        $id = $this->existeItemPrint($arrayItemPrint['reference'], $arrayItemPrint['teccode'], $arrayItemPrint['areacode']);
+
+        if(!isset($id)){
+            $itemPrint = new RjMakitoItemPrint();
+            $this->newsItemPrint++;
+        } else {
+            $itemPrint = new RjMakitoItemPrint($id);
+            $this->duplicadosItemPrint++;
+        }
+
+        $itemPrint->reference = $arrayItemPrint['reference'];
+        $itemPrint->name = $arrayItemPrint['name'];
+        $itemPrint->teccode = $arrayItemPrint['teccode'];
+        $itemPrint->tecname = $arrayItemPrint['tecname'];
+        $itemPrint->maxcolour = $arrayItemPrint['maxcolour'];
+        $itemPrint->includedcolour = $arrayItemPrint['includedcolour'];
+        $itemPrint->areacode = $arrayItemPrint['areacode'];
+        $itemPrint->areaname = $arrayItemPrint['areaname'];
+        $itemPrint->areawidth = $arrayItemPrint['areawidth'];
+        $itemPrint->areahight = $arrayItemPrint['areahight'];
+        $itemPrint->areaimg = $arrayItemPrint['areaimg'];
+
+        if(!isset($id)){
+            if (!$itemPrint->add()) {
+                $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+            }
+        } elseif(!$itemPrint->update()) {
+            $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+        }
+
+        return true;
     }
 
     public function readXML($nameFile)
@@ -663,7 +612,7 @@ class Rj_MakitoSync extends Module
 
     public function getData() {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-        SELECT * FROM '._DB_PREFIX_.'rj_makito_printjobs');
+        SELECT * FROM '._DB_PREFIX_.'rjmakito_printjobs');
     }
 
     public function renderList()
@@ -683,6 +632,11 @@ class Rj_MakitoSync extends Module
             ),
             'name' => array(
                 'title' => $this->l('name'),
+                'width' => 'auto',
+                'search' => false
+            ),
+            'minamount' => array(
+                'title' => $this->l('minamount'),
                 'width' => 'auto',
                 'search' => false
             ),
@@ -731,8 +685,8 @@ class Rj_MakitoSync extends Module
         $helper_list->title_icon = 'icon-folder';
         $helper_list->show_toolbar = false;
         $helper_list->simple_header = false;
-        $helper_list->identifier = 'teccode';
-        $helper_list->table = 'rj_makito_printjobs';
+        $helper_list->identifier = 'id_rjmakito_printjobs';
+        $helper_list->table = 'rjmakito_printjobs';
         $helper_list->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name; 
         $helper_list->token = Tools::getAdminTokenLite('AdminModules');
         $helper_list->listTotal = count($printjobs);
