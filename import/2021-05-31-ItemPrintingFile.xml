@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <catalog>
-<date>26/02/2021</date>
+<date>16/03/2021</date>
 <product>
 <ref>2050</ref>
 <name>40 L/ M2</name>
@@ -7102,8 +7102,8 @@
 <area>
 <areacode>43</areacode>
 <areaname>Centrado</areaname>
-<areawidth>3</areawidth>
-<areahight>0.4</areahight>
+<areawidth>1.8</areawidth>
+<areahight>1</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/3337/AREA/3337-A1.jpg</areaimg>
 </area>
 </areas>
@@ -24152,8 +24152,8 @@
 <area>
 <areacode>979</areacode>
 <areaname>En un panel</areaname>
-<areawidth>9</areawidth>
-<areahight>5</areahight>
+<areawidth>19</areawidth>
+<areahight>12</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/4229/AREA/4229-A1.jpg</areaimg>
 </area>
 </areas>
@@ -24167,8 +24167,8 @@
 <area>
 <areacode>979</areacode>
 <areaname>En un panel</areaname>
-<areawidth>9</areawidth>
-<areahight>5</areahight>
+<areawidth>19</areawidth>
+<areahight>12</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/4229/AREA/4229-A1.jpg</areaimg>
 </area>
 </areas>
@@ -46326,11 +46326,11 @@
 <includedcolour>1</includedcolour>
 <areas>
 <area>
-<areacode>1919</areacode>
-<areaname>Lateral ancho</areaname>
+<areacode>397</areacode>
+<areaname>En la cara B</areaname>
 <areawidth>7</areawidth>
 <areahight>3</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A2.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A4.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46341,11 +46341,18 @@
 <includedcolour>1</includedcolour>
 <areas>
 <area>
-<areacode>1919</areacode>
-<areaname>Lateral ancho</areaname>
+<areacode>913</areacode>
+<areaname>En lateral estrecho</areaname>
 <areawidth>2.5</areawidth>
 <areahight>2</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/noarea.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A2.jpg</areaimg>
+</area>
+<area>
+<areacode>913</areacode>
+<areaname>En lateral estrecho</areaname>
+<areawidth>2.5</areawidth>
+<areahight>2</areahight>
+<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A1.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46356,11 +46363,11 @@
 <includedcolour>1</includedcolour>
 <areas>
 <area>
-<areacode>1919</areacode>
-<areaname>Lateral ancho</areaname>
+<areacode>2365</areacode>
+<areaname>En el lateral cara A</areaname>
 <areawidth>5</areawidth>
 <areahight>2</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A1.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A3.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46371,11 +46378,11 @@
 <includedcolour>1</includedcolour>
 <areas>
 <area>
-<areacode>1919</areacode>
-<areaname>Lateral ancho</areaname>
+<areacode>397</areacode>
+<areaname>En la cara B</areaname>
 <areawidth>7</areawidth>
 <areahight>3</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A2.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4958/AREA/4958-A4.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46525,7 +46532,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>9</areawidth>
 <areahight>4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A1.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A4.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46540,7 +46547,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>2.5</areawidth>
 <areahight>2</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A5.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A1.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46555,7 +46562,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>5</areawidth>
 <areahight>2</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A4.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A2.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46585,7 +46592,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>10</areawidth>
 <areahight>5</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A2.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A5.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46600,7 +46607,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>12</areawidth>
 <areahight>7.4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A8.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A6.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46615,7 +46622,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>15.4</areawidth>
 <areahight>7.4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A10.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4964/AREA/4964-A7.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46660,18 +46667,18 @@
 <includedcolour>1</includedcolour>
 <areas>
 <area>
-<areacode>2417</areacode>
-<areaname>En el estuche de presentación</areaname>
+<areacode>1807</areacode>
+<areaname>Parte superior</areaname>
 <areawidth>9</areawidth>
 <areahight>4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A7.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A4.jpg</areaimg>
 </area>
 <area>
 <areacode>1807</areacode>
 <areaname>Parte superior</areaname>
 <areawidth>9</areawidth>
 <areahight>4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A8.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A5.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46686,7 +46693,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>2.5</areawidth>
 <areahight>2</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A6.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A1.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46701,7 +46708,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>5</areawidth>
 <areahight>2</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A5.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A2.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -46716,7 +46723,7 @@
 <areaname>Parte superior</areaname>
 <areawidth>5</areawidth>
 <areahight>4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A4.jpg</areaimg>
+<areaimg>https://etools.boxpromotions.com/videos/4967/AREA/4967-A3.jpg</areaimg>
 </area>
 </areas>
 </printjob>
@@ -70293,14 +70300,14 @@
 <area>
 <areacode>3301</areacode>
 <areaname>En la tira exterior</areaname>
-<areawidth>12.5</areawidth>
+<areawidth>25</areawidth>
 <areahight>1.5</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/8846/AREA/8846-A2.jpg</areaimg>
 </area>
 <area>
 <areacode>3302</areacode>
 <areaname>En la tira interior</areaname>
-<areawidth>12.5</areawidth>
+<areawidth>25</areawidth>
 <areahight>1.5</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/8846/AREA/8846-A3.jpg</areaimg>
 </area>
@@ -70315,14 +70322,14 @@
 <area>
 <areacode>3301</areacode>
 <areaname>En la tira exterior</areaname>
-<areawidth>12.5</areawidth>
+<areawidth>25</areawidth>
 <areahight>1.5</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/8846/AREA/8846-A2.jpg</areaimg>
 </area>
 <area>
 <areacode>3302</areacode>
 <areaname>En la tira interior</areaname>
-<areawidth>12.5</areawidth>
+<areawidth>25</areawidth>
 <areahight>1.5</areahight>
 <areaimg>https://etools.boxpromotions.com/videos/8846/AREA/8846-A3.jpg</areaimg>
 </area>
@@ -82212,6 +82219,21 @@
 <ref>5660</ref>
 <name>ROSECA</name>
 <printjobs>
+<printjob>
+<teccode>100400</teccode>
+<tecname>GRABACIÓN LASER 1</tecname>
+<maxcolour>1</maxcolour>
+<includedcolour>1</includedcolour>
+<areas>
+<area>
+<areacode>496</areacode>
+<areaname>En la cara lisa centrado</areaname>
+<areawidth>3</areawidth>
+<areahight>0.7</areahight>
+<areaimg>https://etools.boxpromotions.com/videos/5660/AREA/5660-A1.jpg</areaimg>
+</area>
+</areas>
+</printjob>
 <printjob>
 <teccode>100114</teccode>
 <tecname>TAMPOGRAFÍA D</tecname>
@@ -105981,13 +106003,6 @@
 <maxcolour>1</maxcolour>
 <includedcolour>1</includedcolour>
 <areas>
-<area>
-<areacode>3062</areacode>
-<areaname>Alrededor de la Taza</areaname>
-<areawidth>18</areawidth>
-<areahight>5</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/6111/AREA/6111-A1.jpg</areaimg>
-</area>
 </areas>
 </printjob>
 <printjob>
@@ -118495,13 +118510,6 @@
 <maxcolour>1</maxcolour>
 <includedcolour>1</includedcolour>
 <areas>
-<area>
-<areacode>2402</areacode>
-<areaname>Centrado en el círculo</areaname>
-<areawidth>4</areawidth>
-<areahight>4</areahight>
-<areaimg>https://etools.boxpromotions.com/videos/6519/AREA/6519-A1.jpg</areaimg>
-</area>
 </areas>
 </printjob>
 <printjob>
@@ -120209,7 +120217,7 @@
 <printjob>
 <teccode>100216</teccode>
 <tecname>SERIGRAFÍA F</tecname>
-<maxcolour>1</maxcolour>
+<maxcolour>4</maxcolour>
 <includedcolour>1</includedcolour>
 <areas>
 <area>
@@ -131551,6 +131559,21 @@
 </area>
 </areas>
 </printjob>
+<printjob>
+<teccode>100600</teccode>
+<tecname>GRABACIÓN TRANSFER SERIGRÁFICO</tecname>
+<maxcolour>8</maxcolour>
+<includedcolour>1</includedcolour>
+<areas>
+<area>
+<areacode>3001</areacode>
+<areaname>Centrado cara A</areaname>
+<areawidth>9</areawidth>
+<areahight>12</areahight>
+<areaimg>https://etools.boxpromotions.com/videos/6823/AREA/6823-A1.jpg</areaimg>
+</area>
+</areas>
+</printjob>
 </printjobs>
 </product>
 <product>
@@ -134659,6 +134682,54 @@
 </area>
 </areas>
 </printjob>
+</printjobs>
+</product>
+<product>
+<ref>6900</ref>
+<name>VAREX</name>
+<printjobs>
+</printjobs>
+</product>
+<product>
+<ref>6901</ref>
+<name>PROPUX</name>
+<printjobs>
+<printjob>
+<teccode>100116</teccode>
+<tecname>TAMPOGRAFÍA F</tecname>
+<maxcolour>4</maxcolour>
+<includedcolour>1</includedcolour>
+<areas>
+<area>
+<areacode>595</areacode>
+<areaname>Centrado en una cara</areaname>
+<areawidth>3.5</areawidth>
+<areahight>2.5</areahight>
+<areaimg>https://etools.boxpromotions.com/videos/6901/AREA/6901-A1.jpg</areaimg>
+</area>
+</areas>
+</printjob>
+<printjob>
+<teccode>103002</teccode>
+<tecname>DIGITAL W2 (-10  cm2)</tecname>
+<maxcolour>1</maxcolour>
+<includedcolour>1</includedcolour>
+<areas>
+<area>
+<areacode>595</areacode>
+<areaname>Centrado en una cara</areaname>
+<areawidth>3.5</areawidth>
+<areahight>2.5</areahight>
+<areaimg>https://etools.boxpromotions.com/videos/6901/AREA/6901-A1.jpg</areaimg>
+</area>
+</areas>
+</printjob>
+</printjobs>
+</product>
+<product>
+<ref>6899</ref>
+<name>HINTEK</name>
+<printjobs>
 </printjobs>
 </product>
 </catalog>

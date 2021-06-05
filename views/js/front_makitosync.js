@@ -25,3 +25,23 @@
 * Don't forget to prefix your containers with your own identifier
 * to avoid any conflicts with others containers.
 */
+
+
+$(document).ready(function(){
+    var grupoarea = $('#group_area').val();
+    console.log(grupoarea);
+
+    $('input[type=checkbox] .areacode').change(function() {
+
+        if (this.value == 1) {
+    
+            console.log(this.value);
+    
+        }else if (this.value == 2) {
+    
+            console.log(this.value);
+    
+        }
+    
+    });
+});
