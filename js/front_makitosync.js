@@ -55,39 +55,11 @@ $(document).ready(function () {
         selectColors(areacode, dataarea)
     });
 
-    // $('body').on('change touchspin.on.startspin', '#accordionPrintJobs *[name]', function (event) {
-    //     // $('#accordionPrintJobs input[type=checkbox]').on('change', function(e) {
-    //     event.preventDefault();
-    //     var targe = event.target;
-    //     console.log(targe.name);
-    //     var areacode = $(this).parents('.areacode').attr('data-areacode');
-    //     console.log(areacode);
-
-    //     // console.log('selecciona posición de marcaje ' + areacode);
-    //     var dataarea = getDataAreaForm(areacode);
-
-    //     activeInputs(areacode);
-
-    //     /* prestashop.emit('updateProduct', {
-    //         eventType: 'updatedProductPrint',
-    //         event,
-    //         // Following variables are not used anymore, but kept for backward compatibility
-    //         resp: {},
-    //         reason: {
-    //             productUrl: prestashop.urls.pages.product || '',
-    //         },
-    //     });
-
-        prestashop.on('updatedProduct', (args) => {
-            const {eventType} = args;
-            const {event} = args;
-            console.log(eventType);
-            console.log(event);
-            // selectTypeprint(areacode, dataarea);
-            // selectColors(areacode, dataarea);
-        }); 
-        
-    // });
+    prestashop.on('updatedProduct', (args) => {
+        console.log(args);
+        const {eventType} = args;
+        const {event} = args;
+    }); 
 
     function getDataAreaForm(areacode) {
         let reference = $('input#productreference_printjobs').val();
@@ -168,44 +140,7 @@ $(document).ready(function () {
                 console.log(err);
             }
         });
-        return false;
     }
-    
-    // $('#accordionPrintJobs .typeprint').on('change', function (e) {
-    //     console.log('selecciona tipo de marcaje');
-    //     e.preventDefault();
-    //     var teccode = $(this).val();
-    //     var reference = $('input#productreference_printjobs').val();
-    //     var idTypePrint = $(this).attr('id');
-    //     var areacode = idTypePrint.replace("teccode_", "");
-    //     var selectTypePrint = {
-    //         teccode: teccode,
-    //         reference: reference,
-    //         areacode: areacode,
-    //         actionPrint: 'selectTypePrint'
-    //     };
-    //     if (typeof rjmakitosync_front === 'undefined') {
-    //         return true;
-    //     }
-    //     $.ajax({
-    //         type: 'POST',
-    //         dataType: 'JSON',
-    //         url: rjmakitosync_front,
-    //         cache: false,
-    //         data: selectTypePrint,
-    //         success: function (data) {
-    //             var optiontypeprintcolor = optionsColors(data)
-    //             $('#qcolors_' + areacode).html(optiontypeprintcolor).fadeIn();
-    //             clicheInput(areacode, data);
-    //             calculaPrecioPrint(data);
-    //         },
-    //         error: function (err) {
-    //             console.log(err);
-    //         }
-    //     });
-    //     return false;
-    // }); 
-   
 
     $('#accordionPrintJobs .width').on('keyup', function () {
         validaSize(this);
@@ -260,9 +195,9 @@ $(document).ready(function () {
         var cantidad = $('#quantity_wanted').val();
         var price = $('.current-price span[itemprop=price]').attr('content');
         var cantidadcolor = $('#qcolors_' + data['areacode']).val();
-        // console.log('Cantidad colors = ' + cantidadcolor);
+        console.log('Cantidad colors = ' + cantidadcolor);
 
-        // console.log(data);
+        console.log(data);
 
         var typetarifa = '';
         var amountunder = 0;
@@ -273,19 +208,17 @@ $(document).ready(function () {
             amountunder = parseInt(data['amountunder' + i]);
 
             if (amountunder > 0 && cantidad <= amountunder) {
-                // if(cantidad <= amountunder ){
                 typetarifa = i;
                 console.log(amountunder);
                 break;
-                // } 
             }
         }
 
-        // console.log('cantidad = ' + cantidad);
-        // console.log('amountunder = ' + amountunder);
-        // console.log('tarifa = ' + data['price' + typetarifa]);
+        console.log('cantidad = ' + cantidad);
+        console.log('amountunder = ' + amountunder);
+        console.log('tarifa = ' + data['price' + typetarifa]);
         precioprint = cantidad * data['price' + typetarifa];
-        // console.log('cantidad * tarifa = ' + precioprint);
+        console.log('cantidad * tarifa = ' + precioprint);
         if (precioprint < data['minjob']) {
             precioprint = data['minjob'];
             preciounidad = precioprint / cantidad;
@@ -295,8 +228,8 @@ $(document).ready(function () {
             precioprint += precioprintcoloradicional;
         }
 
-        // console.log('precio unidad = ' + precioprint / cantidad);
-        // console.log('precio colores add = ' + precioprint);
+        console.log('precio unidad = ' + precioprint / cantidad);
+        console.log('precio colores add = ' + precioprint);
     }
 
 });

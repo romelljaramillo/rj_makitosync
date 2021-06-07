@@ -1,5 +1,7 @@
 <div class="accordion" id="accordionPrintJobs">
     <input type="hidden" name="productreference_printjobs" id="productreference_printjobs" value="{$printjobs[0].reference}">
+    {assign var="cliche" value=1}
+    
     {foreach from=$printjobs item=printjob}
     <div class="card areacode" data-areacode="{$printjob.areacode}">
         <!-- header item -->
@@ -45,13 +47,15 @@
 
                                         {foreach from=$printjob.printjobs item=teccode}
                                             <option value="{$teccode.teccode}" title="{$teccode.name}"
-                                                {*if in_array($teccode.areacode, $dataselect.areacode) && in_array($teccode.teccode, $dataselect.teccode)*} 
                                                 {if in_array($teccode.areacode, $dataselect.areacode)}
                                                     {if $teccode.teccode == $dataselect["teccode_"|cat:$teccode.areacode]} 
                                                         selected 
-                                                        {$printjob.cliche = $teccode.cliche}
                                                         {$printjob.maxcolour = $teccode.maxcolour}
-                                                        {$printjob.cliche = $teccode.clicherep}
+                                                        {$printjob.areawidth = $dataselect["width_"|cat:$teccode.areacode]}
+                                                        {$printjob.areahight = $dataselect["heigth_"|cat:$teccode.areacode]}
+                                                        {$printjob.cliche = $teccode.cliche}
+                                                        {$printjob.clicherep = $teccode.clicherep}
+                                                        {$cliche = $dataselect["cliche_"|cat:$teccode.areacode]}
                                                     {/if}
                                                 {/if}
                                             >
@@ -115,7 +119,8 @@
                             <div class="col-md-12">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="cliche_{$printjob.areacode}"
-                                        id="cliche_{$printjob.areacode}" value="1" checked 
+                                        id="cliche_{$printjob.areacode}" value="1" 
+                                        {if $cliche == 1} checked{/if}  
                                         {if !in_array($printjob.areacode, $dataselect)} disabled {/if}>
                                     <label class="form-check-label" for="cliche_{$printjob.areacode}">
                                         Cliché = {$printjob.cliche|string_format:"%.2f"}
@@ -124,6 +129,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="cliche_{$printjob.areacode}" 
                                         id="clicherep_{$printjob.areacode}" value="2" 
+                                        {if $cliche == 2} checked{/if} 
                                         {if !in_array($printjob.areacode, $dataselect)} disabled {/if}>
                                     <label class="form-check-label" for="clicherep_{$printjob.areacode}">
                                         Repetición Cliché = {$printjob.clicherep|string_format:"%.2f"}

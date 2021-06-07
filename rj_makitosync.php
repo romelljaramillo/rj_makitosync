@@ -740,7 +740,7 @@ class Rj_MakitoSync extends Module
 
         // $this->context->controller->addCSS($this->_path . '/views/css/front.css');
     }
-    // displayAdminProductsExtra
+
     public function hookDisplayAdminProductsExtra($params)
     {
         $id_shop = (int)Shop::getContextShopID();
@@ -782,21 +782,12 @@ class Rj_MakitoSync extends Module
         $sql->where('it.reference = "' . $reference . '"');
         $sql->groupby('it.areacode');
         
-        
-        // die($sql);
         if($query = Db::getInstance()->executeS($sql)){
             foreach ($query as $key => $item) {
                 $query[$key]['printjobs'] = $this->getTypePrint($item['areacode'], $item['reference']);
             }
-            dump($query);
-            // die();
             return $query;
         }
-
-        // if($res = Db::getInstance()->executeS($sql)){
-        //     return $res;
-        // }
-        // return false;
     }
 
     public function getTypePrint($areacode, $reference, $teccode = null)
@@ -827,11 +818,6 @@ class Rj_MakitoSync extends Module
         $dataget = $_GET;
         $areacode=[];
         $teccode=[];
-        // $clave = array_search('printArea_', $dataget);
-
-        // if($dataget["productreference_printjobs"]){
-
-        // }
 
         foreach ($dataget as $key => $value) {
             $existareacode = strpos($key,'printArea_');
@@ -849,10 +835,6 @@ class Rj_MakitoSync extends Module
         $reference = $params['product']['reference'];        
         $printjobs = $this->getItemsAreas($reference);
 
-
-
-        // dump($printjobs);
-        // die();
         if($printjobs){
             $this->context->smarty->assign(
                 array(
