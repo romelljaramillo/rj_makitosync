@@ -137,7 +137,7 @@ class AdminMakitoSyncController extends ModuleAdminController
     {
         if (Tools::isSubmit('manual_import')) {
             // $this->module->printLabel((int) Tools::getValue($this->identifier));
-            dump('manual_import');
+            // dump('manual_import');
             $this->module->importAchives();
             // $this->module->readXML();
         }

@@ -235,4 +235,14 @@ class RjMakitoPrintjobs extends ObjectModel
             'terms'              => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml'],
         ],
     ];
+
+    public static function getPrintJobTeccode($teccode) {
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from('rjmakito_printjobs', 'pj');
+        // $sql->rightJoin('rjmakito_printarea', 'a', 'pj.areacode = a.areacode');
+        $sql->where('pj.teccode = ' . $teccode);
+
+        return Db::getInstance()->executeS($sql);
+    }
 }

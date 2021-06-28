@@ -17,46 +17,52 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-class RjMakitoItemPrint extends ObjectModel
+class RjMakitoPrintArea extends ObjectModel
 {
-    /**
-     * @var string
-     */
-    public $reference;
-    
-    /**
-     * @var string
-     */
-    public $teccode;
-    
-    /**
-     * @var int
-     */
-    public $maxcolour;
-    
-    /**
-     * @var int
-     */
-    public $includedcolour;
-    
     /**
      * @var int
      */
     public $areacode;
+
+    /**
+     * @var int
+     */
+    public $reference;
+
+    /**
+     * @var string
+     */
+    public $areaname;
+    
+    /**
+     * @var float
+     */
+    public $areawidth;
+    
+    /**
+     * @var float
+     */
+    public $areahight;
+    
+    /**
+     * @var string
+     */
+    public $areaimg;
     
     /**
      * @see ObjectModel::$definition
      */
     public static $definition = [
-        'table' => 'rjmakito_itemprint',
-        'primary' => 'id_rjmakito_itemprint',
+        'table' => 'rjmakito_printarea',
+        'primary' => 'id_rjmakito_printarea',
         'fields' => [
             // Config fields
-            'reference'     => ['type' => self::TYPE_STRING, 'required' => true],
-            'teccode'       => ['type' => self::TYPE_STRING, 'required' => true],
-            'maxcolour'     => ['type' => self::TYPE_INT],
-            'includedcolour'=> ['type' => self::TYPE_INT],
-            'areacode'      => ['type' => self::TYPE_INT],
+            'areacode'      => ['type' => self::TYPE_INT, 'validate' => 'isunsignedInt', 'required' => true],
+            'reference'     => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml', 'required' => true],
+            'areaname'      => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml'],
+            'areawidth'     => ['type' => self::TYPE_FLOAT],
+            'areahight'     => ['type' => self::TYPE_FLOAT],
+            'areaimg'       => ['type' => self::TYPE_STRING],
         ],
     ];
 

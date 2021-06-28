@@ -1,28 +1,29 @@
 <?php
+
 /**
-* 2007-2021 PrestaShop
-*
-* NOTICE OF LICENSE
-*
-* This source file is subject to the Academic Free License (AFL 3.0)
-* that is bundled with this package in the file LICENSE.txt.
-* It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/afl-3.0.php
-* If you did not receive a copy of the license and are unable to
-* obtain it through the world-wide-web, please send an email
-* to license@prestashop.com so we can send you a copy immediately.
-*
-* DISCLAIMER
-*
-* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
-* versions in the future. If you wish to customize PrestaShop for your
-* needs please refer to http://www.prestashop.com for more information.
-*
-*  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2021 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
-*/
+ * 2007-2021 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2021 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -34,10 +35,12 @@ if (file_exists($autoloadPath)) {
 }
 
 include_once(__DIR__ . '/classes/RjMakitoPrintjobs.php');
+include_once(__DIR__ . '/classes/RjMakitoPrintArea.php');
 include_once(__DIR__ . '/classes/RjMakitoItemPrint.php');
 
 class Rj_MakitoSync extends Module
 {
+    private $reference;
     protected $_html = '';
     protected $config_form = false;
     private $url_import = '';
@@ -53,8 +56,8 @@ class Rj_MakitoSync extends Module
      *
      * @var array
      */
-    protected $nodesDowload = ['PrintJobsPrices'];
-    // protected $nodesDowload = ['PrintJobsPrices','ItemPrintingFile'];
+    // protected $nodesDowload = ['PrintJobsPrices'];
+    protected $nodesDowload = ['PrintJobsPrices', 'ItemPrintingFile'];
 
     protected $nodeActual;
     /**
@@ -87,30 +90,32 @@ class Rj_MakitoSync extends Module
         // $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 
         $this->url_import = dirname(__FILE__) . '/import/';
-
     }
 
-    /**
-     * Don't forget to create update methods if needed:
-     * http://doc.prestashop.com/display/PS16/Enabling+the+Auto-Update
-     */
     public function install()
     {
         // Configuration::updateValue('rj_makitosync_URL_SERVICE_FTP', false);
-
-        if (parent::install() &&
-            $this->registerHook('header') &&
-            $this->registerHook('backOfficeHeader') &&
-            $this->registerHook('actionProductAdd') &&
-            $this->registerHook('actionProductUpdate') &&
-            $this->registerHook('displayBackOfficeHeader') &&
-            $this->registerHook('displayHeader') &&
-            $this->registerHook('displayProductListFunctionalButtons')
+        if (
+            parent::install()
+            && $this->registerHook(
+                array(
+                    'actionFrontControllerSetMedia',
+                    'header',
+                    'backOfficeHeader',
+                    'actionProductAdd',
+                    'actionProductUpdate',
+                    'displayBackOfficeHeader',
+                    'displayHeader',
+                    'displayAdminProductsExtra',
+                    'displayProductAdditionalInfo',
+                    'displayReassurance',
+                    'displayProductListFunctionalButtons',
+                )
+            )
         ) {
+            include(dirname(__FILE__) . '/sql/install.php');
 
-            include(dirname(__FILE__).'/sql/install.php');
-
-            $this->installTab('AdminParentRJmakitosync', 'RJ Makito Sync'); 
+            $this->installTab('AdminParentRJmakitosync', 'RJ Makito Sync');
             $this->installTab('AdminConfigMakitoSync', 'Configuration', 'AdminParentRJmakitosync');
             $this->installTab('AdminMakitoSync', 'Makito Sync', 'AdminParentRJmakitosync');
 
@@ -135,25 +140,26 @@ class Rj_MakitoSync extends Module
         } else {
             $tab->id_parent = 0;
         }
-        
+
         $tab->module = $this->name;
         return $tab->add();
     }
 
     public function uninstall()
     {
-        Configuration::deleteByName('rj_makitosync_URL_SERVICE_FTP');
-        Configuration::deleteByName('rj_makitosync_URL_SERVICE_URL');
-        Configuration::deleteByName('rj_makitosync_URL_SERVICE_KEY_API');
-        Configuration::deleteByName('rj_makitosync_URL_SERVICE_PROVEEDOR');
+        // OJO descomentar
+        // Configuration::deleteByName('rj_makitosync_URL_SERVICE_FTP');
+        // Configuration::deleteByName('rj_makitosync_URL_SERVICE_URL');
+        // Configuration::deleteByName('rj_makitosync_URL_SERVICE_KEY_API');
+        // Configuration::deleteByName('rj_makitosync_URL_SERVICE_PROVEEDOR');
 
-        include(dirname(__FILE__).'/sql/uninstall.php');
-        if (parent::uninstall()){
+        // include(dirname(__FILE__) . '/sql/uninstall.php');
+        if (parent::uninstall()) {
             $this->uninstallTab('AdminParentRJmakitosync');
             $this->uninstallTab('AdminConfigMakitoSync');
             $this->uninstallTab('AdminMakitoSync');
 
-            
+
             return true;
         }
 
@@ -179,14 +185,13 @@ class Rj_MakitoSync extends Module
             $this->postProcess();
         }
 
-        if (Tools::isSubmit('manual_import')){
+        if (Tools::isSubmit('manual_import')) {
             $this->importAchives();
-            
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
 
-        $this->_html .= $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
+        $this->_html .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
         $this->_html .= $this->renderFormUrlService();
         $this->_html .= $this->renderFormManualImport();
         $this->_html .= $this->renderList();
@@ -213,7 +218,7 @@ class Rj_MakitoSync extends Module
 
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submit_url_service';
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
@@ -244,8 +249,8 @@ class Rj_MakitoSync extends Module
         return [
             'form' => [
                 'legend' => [
-                'title' => $this->l('Settings'),
-                'icon' => 'icon-cogs',
+                    'title' => $this->l('Settings'),
+                    'icon' => 'icon-cogs',
                 ],
                 'input' => [
                     [
@@ -288,11 +293,11 @@ class Rj_MakitoSync extends Module
                         'name' => 'rj_makitosync_URL_SERVICE_PROVEEDOR',
                         'desc' => $this->l('Please Eneter Web Site URL Address.'),
                         'options' => [
-                          'query' => $options,
-                          'id' => 'id', 
-                          'name' => 'name'
+                            'query' => $options,
+                            'id' => 'id',
+                            'name' => 'name'
                         ]
-                      ]
+                    ]
                 ],
                 'submit' => [
                     'title' => $this->l('Save'),
@@ -334,34 +339,29 @@ class Rj_MakitoSync extends Module
         foreach ($this->nodesDowload as $node) {
             $this->nodeActual = $node;
             $data_ws = $this->getConfigFormValuesUrlService();
-            $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/'.$this->nodeActual.'.php?'.$this->namekey.'=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
-            $nameFile = date("Y-m-d").'-'. $this->nodeActual .'.xml';
-            
+            $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/' . $this->nodeActual . '.php?' . $this->namekey . '=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
+            $nameFile = date("Y-m-d") . '-' . $this->nodeActual . '.xml';
+
             if (file_exists($nameFile)) {
                 $this->_html .= $this->displayInformation("El fichero $nameFile existe");
             } else {
                 $this->getAPI($url, $nameFile);
             }
 
-            if($this->nodeActual){
+            if ($this->nodeActual) {
                 $this->setData($nameFile);
             }
         }
 
-        dump($this->newsPrintJobs);        
-        dump($this->duplicadosPrintJobs);
-        dump($this->newsItemPrint);        
-        dump($this->duplicadosItemPrint);
-        
+        if (count($this->errors)) {
+            $this->_html .= $this->displayError(implode('<br />', $this->errors));
+        } else {
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
+        }
+    }
 
-        // if (count($this->errors)) {
-        //     $this->_html .= $this->displayError(implode('<br />', $this->errors));
-        // } else {
-        //     Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
-        // }
-    }   
-
-    protected function getAPI($url, $nameFile) {
+    protected function getAPI($url, $nameFile)
+    {
         $archivo = fopen($this->url_import . $nameFile, "w+");
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -392,177 +392,155 @@ class Rj_MakitoSync extends Module
         return $resultado;
     }
 
-    public function setData($file) {
+    public function setData($file)
+    {
 
         $datos = $this->readXML($file);
-        
-        if($datos) {
-            if($this->nodeActual === 'PrintJobsPrices')
-            {
-                foreach ($datos as $data) {
-                    
-                    $idPrintJobs = $this->existePrintJobs($data['teccode']);
 
-                    if(!isset($idPrintJobs)){
-                        $printjobs = new RjMakitoPrintjobs();
-                        $this->newsPrintJobs++;
-                    } else {
-                        $printjobs = new RjMakitoPrintjobs($idPrintJobs);
-                        $this->duplicadosPrintJobs++;
-                    }
-                    // dump((int)$data['minamount']);
-                    // die();
-                    $printjobs->teccode = (isset($data['teccode']))?$data['teccode']:null;
-                    $printjobs->code = (isset($data['code']))?$data['code']:null;
-                    $printjobs->name = (isset($data['name']))?$data['name']:null;
-                    $printjobs->minamount = (isset($data['minamount']))?(int)$data['minamount']:null;
-                    $printjobs->cliche = (isset($data['cliche']))?$data['cliche']:null;
-                    $printjobs->clicherep = (isset($data['clicherep']))?$data['clicherep']:null;
-                    $printjobs->minjob = (isset($data['minjob']))?(int)$data['minjob']:null;
-                    $printjobs->amountunder1 = (isset($data['amountunder1']))?(int)$data['amountunder1']:null;
-                    $printjobs->price1 = (isset($data['price1']))?$data['price1']:null;
-                    $printjobs->priceaditionalcol1 = (isset($data['priceaditionalcol1']))?$data['priceaditionalcol1']:null;
-                    $printjobs->pricecm1 = (isset($data['pricecm1']))?$data['pricecm1']:null;
-                    $printjobs->amountunder2 = (isset($data['amountunder2']))?(int)$data['amountunder2']:null;
-                    $printjobs->price2 = (isset($data['price2']))?$data['price2']:null;
-                    $printjobs->priceaditionalcol2 = (isset($data['priceaditionalcol2']))?$data['priceaditionalcol2']:null;
-                    $printjobs->pricecm2 = (isset($data['pricecm2']))?$data['pricecm2']:null;
-                    $printjobs->amountunder3 = (isset($data['amountunder3']))?(int)$data['amountunder3']:null;
-                    $printjobs->price3 = (isset($data['price3']))?$data['price3']:null;
-                    $printjobs->priceaditionalcol3 = (isset($data['priceaditionalcol3']))?$data['priceaditionalcol3']:null;
-                    $printjobs->pricecm3 = (isset($data['pricecm3']))?$data['pricecm3']:null;
-                    $printjobs->amountunder4 = (isset($data['amountunder4']))?(int)$data['amountunder4']:null;
-                    $printjobs->price4 = (isset($data['price4']))?$data['price4']:null;
-                    $printjobs->priceaditionalcol4 = (isset($data['priceaditionalcol4']))?$data['priceaditionalcol4']:null;
-                    $printjobs->pricecm4 = (isset($data['pricecm4']))?$data['pricecm4']:null;
-                    $printjobs->amountunder5 = (isset($data['amountunder5']))?(int)$data['amountunder5']:null;
-                    $printjobs->price5 = (isset($data['price5']))?$data['price5']:null;
-                    $printjobs->priceaditionalcol5 = (isset($data['priceaditionalcol5']))?$data['priceaditionalcol5']:null;
-                    $printjobs->pricecm5 = (isset($data['pricecm5']))?$data['pricecm5']:null;
-                    $printjobs->amountunder6 = (isset($data['amountunder6']))?(int)$data['amountunder6']:null;
-                    $printjobs->price6 = (isset($data['price6']))?$data['price6']:null;
-                    $printjobs->priceaditionalcol6 = (isset($data['priceaditionalcol6']))?$data['priceaditionalcol6']:null;
-                    $printjobs->pricecm6 = (isset($data['pricecm6']))?$data['pricecm6']:null;
-                    $printjobs->amountunder7 = (isset($data['amountunder7']))?(int)$data['amountunder7']:null;
-                    $printjobs->price7 = (isset($data['price7']))?$data['price7']:null;
-                    $printjobs->priceaditionalcol7 = (isset($data['priceaditionalcol7']))?$data['priceaditionalcol7']:null;
-                    $printjobs->pricecm7 = (isset($data['pricecm7']))?$data['pricecm7']:null;
-                    $printjobs->terms = (isset($data['terms']))?$data['terms']:null;
-                    
-                    if(!isset($idPrintJobs)){
-                        if (!$printjobs->add()) {
-                            $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
-                        }
-                    } elseif(!$printjobs->update()) {
-                        $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
-                    }
-                   
-                }
+        if ($datos) {
+            if ($this->nodeActual === 'PrintJobsPrices') {
+                $this->processPrintJobs($datos);
             } else {
-                foreach ($datos as $data) {
-                    $arrayPrintjob = array();
-                    $arrayPrintjob['reference'] = $data['ref'];
-                    $arrayPrintjob['name'] = $data['name'];
-                    if(isset($data['printjobs']['printjob'])){
-                        foreach ($data['printjobs'] as $printjob) {
-                            if(isset($printjob['teccode'])){
-                                $arrayPrintjob['teccode'] = $printjob['teccode'];
-                                $arrayPrintjob['tecname'] = $printjob['tecname'];
-                                $arrayPrintjob['maxcolour'] = $printjob['maxcolour'];
-                                $arrayPrintjob['includedcolour'] = $printjob['includedcolour'];
-                                if(isset($printjob['areas']['area'])){
-                                    if(isset($printjob['areas']['area']['areacode'])){
-                                        $area = $this->processAreas($printjob['areas']['area']);
-                                        $arrayPrintjob = array_merge($arrayPrintjob,$area);
-                                        $this->saveItemPrint($arrayPrintjob);
-                                    } else {
-                                        foreach ($printjob['areas']['area'] as $area) {
-                                            $area = $this->processAreas($area);
-                                            $arrayPrintjob = array_merge($arrayPrintjob,$area);
-                                            $this->saveItemPrint($arrayPrintjob);
-                                        }
-                                    }
-                                } else {
-                                    // cuando no tiene area impresión
-                                    $area = $this->processAreas();
-                                    $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                $this->processItemPrint($datos);
+            }
+        }
+    }
+
+    private function processItemPrint($datos)
+    {
+        $this->reference = '';
+        foreach ($datos as $data) {
+            $arrayPrintjob = array();
+            $arrayPrintjob['reference'] = $data['ref'];
+            $this->reference = $data['ref'];
+            if (isset($data['printjobs']['printjob'])) {
+                foreach ($data['printjobs'] as $printjob) {
+                    if (isset($printjob['teccode'])) {
+                        $arrayPrintjob['teccode'] = $printjob['teccode'];
+                        $arrayPrintjob['maxcolour'] = $printjob['maxcolour'];
+                        $arrayPrintjob['includedcolour'] = $printjob['includedcolour'];
+                        if (isset($printjob['areas']['area'])) {
+                            if (isset($printjob['areas']['area']['areacode'])) {
+                                $arrayPrintjob['areacode'] = $this->processAreas($printjob['areas']['area']);
+                                $this->saveItemPrint($arrayPrintjob);
+                            } else {
+                                foreach ($printjob['areas']['area'] as $area) {
+                                    $arrayPrintjob['areacode'] = $this->processAreas($area);
                                     $this->saveItemPrint($arrayPrintjob);
                                 }
-                            } else {
-                                foreach ($printjob as $job) {
-                                    $arrayPrintjob['teccode'] = $job['teccode'];
-                                    $arrayPrintjob['tecname'] = $job['tecname'];
-                                    $arrayPrintjob['maxcolour'] = $job['maxcolour'];
-                                    $arrayPrintjob['includedcolour'] = $job['includedcolour'];
-                                    if(isset($job['areas']['area'])){
-                                        if(isset($job['areas']['area']['areacode'])){
-                                            $area = $this->processAreas($job['areas']['area']);
-                                            $arrayPrintjob = array_merge($arrayPrintjob,$area);
-                                            $this->saveItemPrint($arrayPrintjob);
-                                        } else {
-                                            foreach ($job['areas']['area'] as $area) {
-                                                $area = $this->processAreas($area);
-                                                $arrayPrintjob = array_merge($arrayPrintjob,$area);
-                                                $this->saveItemPrint($arrayPrintjob);
-                                            }
-                                        }
-                                    } else {
-                                        // cuando no tiene area impresión
-                                        $area = $this->processAreas();
-                                        $arrayPrintjob = array_merge($arrayPrintjob,$area);
+                            }
+                        } else {
+                            $arrayPrintjob['areacode'] = null;
+                            $this->saveItemPrint($arrayPrintjob);
+                        }
+                    } else {
+                        foreach ($printjob as $job) {
+                            $arrayPrintjob['teccode'] = $job['teccode'];
+                            $arrayPrintjob['maxcolour'] = $job['maxcolour'];
+                            $arrayPrintjob['includedcolour'] = $job['includedcolour'];
+                            if (isset($job['areas']['area'])) {
+                                if (isset($job['areas']['area']['areacode'])) {
+                                    $arrayPrintjob['areacode'] = $this->processAreas($job['areas']['area']);
+                                    $this->saveItemPrint($arrayPrintjob);
+                                } else {
+                                    foreach ($job['areas']['area'] as $area) {
+                                        $arrayPrintjob['areacode'] = $this->processAreas($area);
                                         $this->saveItemPrint($arrayPrintjob);
                                     }
                                 }
+                            } else {
+                                $arrayPrintjob['areacode'] = null;
+                                $this->saveItemPrint($arrayPrintjob);
                             }
                         }
                     }
                 }
-            }   
+            }
         }
     }
 
-    private function processAreas($area=null)
+    private function processPrintJobs($datos)
     {
-        $arrayArea = [];
-        $arrayArea['areacode'] =  (isset($area['areacode']))?$area['areacode']:null;
-        $arrayArea['areaname'] =  (isset($area['areaname']))?$area['areaname']:null;
-        $arrayArea['areawidth'] = (isset($area['areawidth']))?$area['areawidth']:null;
-        $arrayArea['areahight'] = (isset($area['areahight']))?$area['areahight']:null;
-        $arrayArea['areaimg'] =   (isset($area['areaimg']))?$area['areaimg']:null;
+        foreach ($datos as $data) {
+            $idPrintJobs = $this->existePrintJobs($data['teccode']);
 
-        return $arrayArea;
+            if (!isset($idPrintJobs)) {
+                $printjobs = new RjMakitoPrintjobs();
+                $this->newsPrintJobs++;
+            } else {
+                $printjobs = new RjMakitoPrintjobs($idPrintJobs);
+                $this->duplicadosPrintJobs++;
+            }
 
+            foreach ($data as $key => $value) {
+                $printjobs->$key = (isset($value)) ? $value : NULL;
+            }
+
+            if (!isset($idPrintJobs)) {
+                if (!$printjobs->add()) {
+                    die();
+                    $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+                }
+            } elseif (!$printjobs->update()) {
+                $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+            }
+        }
     }
-    
-    public function existePrintJobs($teccode) {
-        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow("
-			SELECT `id_rjmakito_printjobs` as id
-			FROM `"._DB_PREFIX_."rjmakito_printjobs` p
-			WHERE p.`teccode` = '".$teccode."'",
+
+    private function processAreas($area = null)
+    {
+        if (isset($area['areacode'])) {
+            $this->savePrintArea($area);
+            return $area['areacode'];
+        }
+
+        return null;
+    }
+
+    public function existePrintJobs($teccode)
+    {
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+            "SELECT `id_rjmakito_printjobs` as id
+			FROM `" . _DB_PREFIX_ . "rjmakito_printjobs` p
+			WHERE p.`teccode` = '" . $teccode . "'",
             false
-		);
+        );
 
         return $row['id'];
     }
 
-    public function existeItemPrint($reference, $teccode, $areacode) {
-        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow("
-			SELECT `id_rjmakito_itemprint` as id
-			FROM `"._DB_PREFIX_."rjmakito_itemprint` p
-			WHERE p.`reference` = '".$reference."'
-            AND p.`teccode` = '".$teccode."'
-            AND p.`areacode` = ".(int)$areacode,
+    public function existeItemPrint($teccode, $areacode)
+    {
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+            "SELECT `id_rjmakito_itemprint` as id
+			FROM `" . _DB_PREFIX_ . "rjmakito_itemprint` p
+			WHERE p.`reference` = '" . $this->reference . "'
+            AND p.`teccode` = '" . $teccode . "'
+            AND p.`areacode` = " . (int)$areacode,
             false
-		);
+        );
 
         return $row['id'];
     }
 
-    protected function saveItemPrint($arrayItemPrint) 
+    public function existePrintArea($areacode)
     {
-        $id = $this->existeItemPrint($arrayItemPrint['reference'], $arrayItemPrint['teccode'], $arrayItemPrint['areacode']);
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+            "SELECT `id_rjmakito_printarea` as id
+			FROM `" . _DB_PREFIX_ . "rjmakito_printarea` p
+			WHERE p.`areacode` = " . (int)$areacode . "
+            AND p.`reference` = '" . $this->reference . "'",
+            false
+        );
 
-        if(!isset($id)){
+        return $row['id'];
+    }
+
+    protected function saveItemPrint($arrayItemPrint)
+    {
+        $id = $this->existeItemPrint($arrayItemPrint['teccode'], $arrayItemPrint['areacode']);
+
+        if (!isset($id)) {
             $itemPrint = new RjMakitoItemPrint();
             $this->newsItemPrint++;
         } else {
@@ -571,23 +549,46 @@ class Rj_MakitoSync extends Module
         }
 
         $itemPrint->reference = $arrayItemPrint['reference'];
-        $itemPrint->name = $arrayItemPrint['name'];
         $itemPrint->teccode = $arrayItemPrint['teccode'];
-        $itemPrint->tecname = $arrayItemPrint['tecname'];
         $itemPrint->maxcolour = $arrayItemPrint['maxcolour'];
         $itemPrint->includedcolour = $arrayItemPrint['includedcolour'];
         $itemPrint->areacode = $arrayItemPrint['areacode'];
-        $itemPrint->areaname = $arrayItemPrint['areaname'];
-        $itemPrint->areawidth = $arrayItemPrint['areawidth'];
-        $itemPrint->areahight = $arrayItemPrint['areahight'];
-        $itemPrint->areaimg = $arrayItemPrint['areaimg'];
 
-        if(!isset($id)){
+        if (!isset($id)) {
             if (!$itemPrint->add()) {
                 $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
             }
-        } elseif(!$itemPrint->update()) {
+        } elseif (!$itemPrint->update()) {
             $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+        }
+
+        return true;
+    }
+
+    protected function savePrintArea($arrayPrintArea)
+    {
+        $id = $this->existePrintArea($arrayPrintArea['areacode']);
+        if (!isset($id)) {
+            $PrintArea = new RjMakitoPrintArea();
+            $this->newsPrintArea++;
+        } else {
+            $PrintArea = new RjMakitoPrintArea($id);
+            $this->duplicadosPrintArea++;
+        }
+
+        $PrintArea->areacode = $arrayPrintArea['areacode'];
+        $PrintArea->reference = $this->reference;
+        $PrintArea->areaname = $arrayPrintArea['areaname'];
+        $PrintArea->areawidth = $arrayPrintArea['areawidth'];
+        $PrintArea->areahight = $arrayPrintArea['areahight'];
+        $PrintArea->areaimg = $arrayPrintArea['areaimg'];
+
+        if (!isset($id)) {
+            if (!$PrintArea->add()) {
+                $this->errors[] = $this->displayError($this->l('The print area could not be added.'));
+            }
+        } elseif (!$PrintArea->update()) {
+            $this->errors[] = $this->displayError($this->l('The print area could not be update.'));
         }
 
         return true;
@@ -595,24 +596,24 @@ class Rj_MakitoSync extends Module
 
     public function readXML($nameFile)
     {
-        if(!is_null($nameFile)){
+        if (!is_null($nameFile)) {
             $xml = simplexml_load_file($this->url_import . $nameFile);
-            if($this->nodeActual === 'PrintJobsPrices'){
+            if ($this->nodeActual === 'PrintJobsPrices') {
                 $data = json_decode(json_encode($xml->printjobs), true);
                 return $data['printjob'];
             } else {
                 $data = json_decode(json_encode($xml), true);
                 return $data['product'];
             }
-
         } else {
             return false;
         }
     }
 
-    public function getData() {
+    public function getData()
+    {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-        SELECT * FROM '._DB_PREFIX_.'rjmakito_printjobs');
+        SELECT * FROM ' . _DB_PREFIX_ . 'rjmakito_printjobs');
     }
 
     public function renderList()
@@ -687,7 +688,7 @@ class Rj_MakitoSync extends Module
         $helper_list->simple_header = false;
         $helper_list->identifier = 'id_rjmakito_printjobs';
         $helper_list->table = 'rjmakito_printjobs';
-        $helper_list->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name; 
+        $helper_list->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name;
         $helper_list->token = Tools::getAdminTokenLite('AdminModules');
         $helper_list->listTotal = count($printjobs);
 
@@ -720,14 +721,12 @@ class Rj_MakitoSync extends Module
     }
 
     /**
-    * Add the CSS & JavaScript files you want to be loaded in the BO.
-    */
+     * Add the CSS & JavaScript files you want to be loaded in the BO.
+     */
     public function hookBackOfficeHeader()
     {
-        if (Tools::getValue('module_name') == $this->name) {
-            $this->context->controller->addJS($this->_path.'views/js/back.js');
-            $this->context->controller->addCSS($this->_path.'views/css/back.css');
-        }
+        $this->context->controller->addJS($this->_path . 'views/js/back.js');
+        $this->context->controller->addCSS($this->_path . 'views/css/back.css');
     }
 
     /**
@@ -735,13 +734,130 @@ class Rj_MakitoSync extends Module
      */
     public function hookHeader()
     {
-        $this->context->controller->addJS($this->_path.'/views/js/front.js');
-        $this->context->controller->addCSS($this->_path.'/views/css/front.css');
+        // $this->context->controller->addJS($this->_path . '/views/js/front_makito.js');
+        // $this->context->controller->registerJavascript('modules-rjmakitosync', 'modules/' . $this->name . '/js/front_makitosync.js');
+
+        // $this->context->controller->addCSS($this->_path . '/views/css/front.css');
+    }
+
+    /* public function hookDisplayAdminProductsExtra($params)
+    {
+        $id_shop = (int)Shop::getContextShopID();
+        $id_lang = (int)$this->context->language->id;
+
+        $idProduct = (int) $params['id_product'];
+        $product = new Product((int)$idProduct);
+
+        $printjobs = $this->getPrintJobsItemsAreas($product->reference);
+
+        $this->context->smarty->assign(
+            array(
+                'printjobs' => $printjobs,
+                'idProduct' => $idProduct
+            )
+        );
+        return $this->display(__FILE__, 'admin_product.tpl');
+    } */
+
+    public function getPrintJobsItemsAreas($reference)
+    {
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from('rjmakito_itemprint', 'it');
+        $sql->rightJoin('rjmakito_printarea', 'a', 'it.areacode = a.areacode');
+        $sql->rightJoin('rjmakito_printjobs', 'j', 'it.teccode = j.teccode');
+        $sql->where('it.reference = ' . $reference);
+
+        return Db::getInstance()->executeS($sql);
+    }
+
+    public function getItemsAreas($reference)
+    {
+        $sql = new DbQuery();
+        $sql->select('it.*, pa.*, pj.cliche, pj.clicherep');
+        $sql->from('rjmakito_itemprint', 'it');
+        $sql->rightJoin('rjmakito_printarea', 'pa', 'it.areacode = pa.areacode AND it.reference = pa.reference');
+        $sql->rightJoin('rjmakito_printjobs', 'pj', 'it.teccode = pj.teccode');
+        $sql->where('it.reference = "' . $reference . '"');
+        $sql->groupby('it.areacode');
+        
+        if($query = Db::getInstance()->executeS($sql)){
+            foreach ($query as $key => $item) {
+                $query[$key]['printjobs'] = $this->getTypePrint($item['areacode'], $item['reference']);
+            }
+            return $query;
+        }
+    }
+
+    public function getTypePrint($areacode, $reference, $teccode = null)
+    {
+        $sql = new DbQuery();
+        $sql->select('j.*, it.includedcolour, it.maxcolour, it.areacode');
+        $sql->from('rjmakito_itemprint', 'it');
+        if(is_null($teccode)){
+            $sql->rightJoin('rjmakito_printjobs', 'j', 'it.teccode = j.teccode');
+            $sql->where('it.areacode = ' . (int)$areacode . ' and it.reference ='. $reference);
+        } else {
+            $sql->innerJoin('rjmakito_printjobs', 'j', 'it.teccode = j.teccode');
+            $sql->where('it.areacode = ' . (int)$areacode . ' and it.reference ='. $reference . ' and it.teccode ='. $teccode);
+        }
+        $sql->groupby('j.teccode');
+
+        return Db::getInstance()->executeS($sql);
+
     }
 
     public function hookActionProductAdd()
     {
         /* Place your code here. */
+    }
+
+    public function hookDisplayProductAdditionalInfo($params)
+    {
+        dump($params);
+        $dataget = $_GET;
+        $areacode=[];
+        $teccode=[];
+
+        foreach ($dataget as $key => $value) {
+            $existareacode = strpos($key,'printArea_');
+            if($existareacode > -1){
+                $areacode[] = $value;
+                $teccode[] = $dataget['teccode_'.$value];
+            }
+        }
+
+        $dataget['areacode'] = $areacode;
+        $dataget['teccode'] = $teccode;
+
+        
+        $idProduct = (int) $params['product']['id_product'];
+        $reference = $params['product']['reference'];        
+        $printjobs = $this->getItemsAreas($reference);
+
+        if($printjobs){
+            $this->context->smarty->assign(
+                array(
+                    'printjobs' => $printjobs,
+                    'idProduct' => $idProduct,
+                    'dataselect' => $dataget
+                )
+            );
+
+            dump($idProduct, $printjobs, $dataget);
+            return $this->display(__FILE__, 'printjobs_product.tpl');
+        }
+    }
+
+    public function hookActionFrontControllerSetMedia()
+    {
+        Media::addJsDef([
+            'rjmakitosync_front' => $this->context->link->getModuleLink($this->name, 'frontsync'),
+        ]);
+
+        // $this->context->controller->registerJavascript('modules-rjmakitosync', 'modules/' . $this->name . '/js/front_makitosync.js');
+        $this->context->controller->registerJavascript('modules-makitosync', 'modules/' . $this->name . '/js/front_makitosync.js', ['position' => 'bottom', 'priority' => 80]);
+
     }
 
     public function hookActionProductUpdate()
@@ -751,16 +867,22 @@ class Rj_MakitoSync extends Module
 
     public function hookDisplayBackOfficeHeader()
     {
-        /* Place your code here. */
+        $this->context->controller->addJS($this->_path . 'views/js/back.js');
+        $this->context->controller->addCSS($this->_path . 'views/css/back.css');
     }
 
-    public function hookDisplayHeader()
+    public function hookDisplayHeader($params)
     {
-        /* Place your code here. */
+        $this->context->controller->registerStylesheet('modules-makitosync', 'modules/' . $this->name . '/css/front_makitosync.css', ['media' => 'all', 'priority' => 150]);
+
+        // Media::addJsDef([
+        //     'url_makitosync' => $this->context->link->getModuleLink($this->name, 'makitosync', [], true),
+        // ]);
+        
+        // $this->context->controller->registerJavascript('modules-makitosync', 'modules/' . $this->name . '/js/front_makitosync.js', ['position' => 'bottom', 'priority' => 150]);
     }
 
     public function hookDisplayProductListFunctionalButtons()
     {
-        /* Place your code here. */
     }
 }
