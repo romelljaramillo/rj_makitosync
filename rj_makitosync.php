@@ -740,7 +740,7 @@ class Rj_MakitoSync extends Module
         // $this->context->controller->addCSS($this->_path . '/views/css/front.css');
     }
 
-    /* public function hookDisplayAdminProductsExtra($params)
+    public function hookDisplayAdminProductsExtra($params)
     {
         $id_shop = (int)Shop::getContextShopID();
         $id_lang = (int)$this->context->language->id;
@@ -757,7 +757,7 @@ class Rj_MakitoSync extends Module
             )
         );
         return $this->display(__FILE__, 'admin_product.tpl');
-    } */
+    }
 
     public function getPrintJobsItemsAreas($reference)
     {

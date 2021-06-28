@@ -119,7 +119,11 @@
                             <div class="col-md-12">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="cliche_{$printjob.areacode}"
+<<<<<<< HEAD
                                         id="cliche_{$printjob.areacode}" data-value="{$printjob.cliche|string_format:"%.2f"}" value="1" 
+=======
+                                        id="cliche_{$printjob.areacode}" value="1" 
+>>>>>>> 4f53d2985b008dbd61bfc5e2043b25788ba70ac0
                                         {if $cliche == 1} checked{/if}  
                                         {if !in_array($printjob.areacode, $dataselect)} disabled {/if}>
                                     <label class="form-check-label" for="cliche_{$printjob.areacode}">
