@@ -27,15 +27,16 @@
 */
 
 $(document).ready(function () {
+    console.log('ready');
     $('body').on('change touchspin.on.startspin', '#accordionPrintJobs [name]', function (event) {
         event.preventDefault();
-        console.log(this);
-        console.log(event.target);
+        // console.log(this);
+        // console.log(event.target);
         let name = this.name;
         let areacode = $(this).parents('.areacode').attr('data-areacode');
 
-        console.log('name seleccionado: ' + name);
-        console.log('areacode seleccionado' + areacode);
+        // console.log('name seleccionado: ' + name);
+        // console.log('areacode seleccionado' + areacode);
         let nameSelect = name.substr(0,name.indexOf('_'+areacode,0));
 
         switch (nameSelect) {
@@ -58,7 +59,6 @@ $(document).ready(function () {
 
     });
     
-    
     function getPrintArea(areacode) {
         let checked = $('input[name=printArea_' + areacode +']').is(':checked');
         if(checked) {
@@ -72,55 +72,14 @@ $(document).ready(function () {
             changePrice(areacode);
         }
     }
-    
-    
-    /* $('body').on('change touchspin.on.startspin', '#accordionPrintJobs .printarea[name]', function (event) {
-        event.preventDefault();
-        let areacode = $(this).val();
-        // var areacode2 = $(this).parents('.areacode').attr('data-areacode');
-        console.log('selecciona posición de marcaje ' + areacode);
-        // console.log('selecciona posición de marcaje ' + areacode2);
-        let dataarea = getDataAreaForm(areacode);
-        console.log(dataarea);
 
-        if($(this).is(':checked')) {
-            console.log('Seleccionado ');
-            activeInputs(areacode, false);
-            getTypePrint(areacode, dataarea);
-        } else {
-            console.log('Des-seleccionado ');
-            activeInputs(areacode);
-            changePrice();
-        }
-    }); */
-
-    /* $('body').on('change touchspin.on.startspin', '#accordionPrintJobs .typeprint[name]', function (event) {
-        event.preventDefault();
-        let areacode = $(this).parents('.areacode').attr('data-areacode');
-        console.log('selecciona tipo de marcaje ' + areacode);
-        let dataarea = getDataAreaForm(areacode);
-        console.log(dataarea);
-        getColors(dataarea, action = 'typeprint')
-    });*/ 
-
-    /* $('body').on('change touchspin.on.startspin', '#accordionPrintJobs .qcolor[name]', function (event) {
-        event.preventDefault();
-        // let colors = $(this).val();
-        let areacode = $(this).parents('.areacode').attr('data-areacode');
-        // console.log('selecciona colores ' + colors);
-        let dataarea = getDataAreaForm(areacode);
-        console.log(dataarea);
-        getColors(dataarea, action = 'colors')
-    }); */
-
-    /* prestashop.on('updatedProduct', (args) => {
+    prestashop.on('updatedProduct', (args) => {
         console.log(args);
-        const {eventType} = args;
-        const {event} = args;
-    });  */
+        changuePriceProduct();
+    }); 
 
     function getDataAreaForm(areacode) {
-        let reference = $('input#productreference_printjobs').val();
+        let reference = $('input#productreference').val();
         let teccode = $('#teccode_' + areacode).val();
         let qcolors = $('#qcolors_' + areacode).val();
         let cliche = $('input:radio[name=cliche_' + areacode + ']:checked').val();
@@ -145,7 +104,7 @@ $(document).ready(function () {
     }
 
     function getTypePrint(areacode, dataarea) {
-        // console.log('selecciona area de marcaje');
+        // console.log(rjmakitosync_front);
 
         if (typeof rjmakitosync_front === 'undefined') {
             console.error('url peticion ajax no definida');
@@ -164,7 +123,7 @@ $(document).ready(function () {
                 // console.log(data);
                 let optiontypeprint = optionsTypeprint(data, dataarea.teccode);
                 $('#teccode_' + areacode).html(optiontypeprint).fadeIn();
-                clicheInput(areacode, data[0]);
+                setCliche(areacode, data[0]);
                 calculaPrecioPrint(data[0]);
             },
             error: function (err) {
@@ -196,7 +155,7 @@ $(document).ready(function () {
                     let optionscolors = optionsColors(data)
                     $('#qcolors_' + dataarea.areacode).html(optionscolors).fadeIn();
                 }
-                clicheInput(dataarea.areacode, data);
+                setCliche(dataarea.areacode, data);
                 calculaPrecioPrint(data);
             },
             error: function (err) {
@@ -245,22 +204,10 @@ $(document).ready(function () {
         return options;
     }
 
-    function clicheInput(areacode, data) {
-        // console.log(data);
-        let cliche = parseFloat(data.cliche).toFixed(2);
-        let clicherep = parseFloat(data.clicherep).toFixed(2);;
-
-        $("label[for=cliche_" + areacode + "]").html('Cliché = ' + cliche).fadeIn();
-        $("label[for=clicherep_" + areacode + "]").html('Repetición Cliché = ' + clicherep).fadeIn();
-    }
-
     function calculaPrecioPrint(data) {
         var cantidad = parseInt($('#quantity_wanted').val());
         const areacode = data['areacode'];
         var cantidadcolor = parseInt($('#qcolors_' + areacode).val());
-        // console.log('Cantidad colors = ' + cantidadcolor);
-
-        // console.log(data);
 
         var typetarifa = '';
         var amountunder = 0;
@@ -278,25 +225,32 @@ $(document).ready(function () {
         }
 
         precioprint = cantidad * data['price' + typetarifa];
-        // console.log('cantidad = ' + cantidad);
-        // console.log('amountunder = ' + amountunder);
-        // console.log('tarifa = ' + data['price' + typetarifa]);
-        // console.log('cantidad * tarifa = ' + precioprint);
         if (precioprint < data['minjob']) {
             precioprint = data['minjob'];
             preciounidad = precioprint / cantidad;
             precioprint = precioprint * cantidadcolor;
         } else {
-            let precioprintcoloradicional = cantidad * data['priceaditionalcol' + typetarifa] * cantidadcolor;
-            precioprint += precioprintcoloradicional;
+            if(cantidadcolor > 1 ){
+                let precioprintcoloradicional = cantidad * data['priceaditionalcol' + typetarifa] * cantidadcolor;
+                precioprint += precioprintcoloradicional;
+            }
         }
 
         let cliche = getCliche(areacode) * cantidadcolor;
-        // console.log('cliche ' + cliche);
-
+        changePriceCliche(areacode, cantidadcolor);
         changePrice(areacode, precioprint + cliche );
-        // console.log('precio unidad = ' + precioprint / cantidad);
-        // console.log('precio colores add = ' + precioprint);
+    }
+
+    function setCliche(areacode, data, cantidadcolor = 1) {
+        // console.log(data);
+        let cliche = parseFloat(data.cliche).toFixed(2);
+        let clicherep = parseFloat(data.clicherep).toFixed(2);
+
+        $("label[for=cliche_" + areacode + "] span").html(cliche).fadeIn();
+        $("label[for=clicherep_" + areacode + "] span").html(clicherep).fadeIn();
+
+            
+
     }
     
     function getCliche(areacode) {
@@ -304,26 +258,32 @@ $(document).ready(function () {
         return cliche;
     }
 
+    function changePriceCliche(areacode, cantidadcolor) {
+        let idCliche = $('input[name=cliche_' + areacode +']:checked').attr('id');
+        let priceCliche = parseFloat($('input[name=cliche_' + areacode +']:checked').attr('data-value')).toFixed(2);
+
+        $('label[for='+idCliche+'] span').html(priceCliche * cantidadcolor).fadeIn();
+    }
+
     function changePrice(areacode, precioprint = 0) {
-        $('#price-print_' + areacode).text(precioprint + ' €');
-        $('#price-print_' + areacode).attr('content', precioprint);
+        $('#price-print_' + areacode).text(precioprint);
+        $('#price_' + areacode).val(precioprint);
         changuePriceProduct();
     }
 
     function changuePriceProduct() {
         let price = parseFloat($('.current-price span[itemprop=price]').attr('content'));
+        let cantidad = parseInt($('#quantity_wanted').val());
         let pricePrintArea = getPricePrintArea();
-        let newprice = price + pricePrintArea;
+        let newprice = (price * cantidad) + pricePrintArea;
         $('.current-price span[itemprop=price]').text(newprice.toFixed(2) + ' €');
     }
 
     function getPricePrintArea() {
-        // console.log($('#accordionPrintJobs .price-print*'));
         let sumaPricePrint= 0;
-        $('#accordionPrintJobs .price-print*').each(function() {
-            sumaPricePrint += parseFloat(this.getAttribute('content'));
+        $('#accordionPrintJobs .current-price-print input*').each(function() {
+            sumaPricePrint += parseFloat(this.value);
         })
         return sumaPricePrint;
     }
-
 });

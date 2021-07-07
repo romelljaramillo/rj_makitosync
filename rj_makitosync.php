@@ -784,6 +784,7 @@ class Rj_MakitoSync extends Module
         if($query = Db::getInstance()->executeS($sql)){
             foreach ($query as $key => $item) {
                 $query[$key]['printjobs'] = $this->getTypePrint($item['areacode'], $item['reference']);
+                $query[$key]['priceprint'] = 0;
             }
             return $query;
         }
@@ -803,8 +804,13 @@ class Rj_MakitoSync extends Module
         }
         $sql->groupby('j.teccode');
 
-        return Db::getInstance()->executeS($sql);
+        $resp = Db::getInstance()->executeS($sql);
+        if(is_null($teccode)){
 
+            return $resp;
+        }
+        
+        return $resp[0];
     }
 
     public function hookActionProductAdd()
@@ -815,25 +821,35 @@ class Rj_MakitoSync extends Module
     public function hookDisplayProductAdditionalInfo($params)
     {
         dump($params);
+        $paramsProduct = $params['product'];
+        $dataProduct=[];
+        // foreach ((array)$paramsProduct as $key => $value) {
+        //     if(substr($key,-strlen('product')) === 'product') {
+        //         $dataProduct = $value;
+        //     }
+        // }
+        // obtenemos la información del producto para procesarla y sumar el precio de impresión
+        // dump($dataProduct['price_amount'] );
+
+        $idProduct = (int) $params['product']['id_product'];
+        $reference = $params['product']['reference'];        
+        $printjobs = $this->getItemsAreas($reference);
+
         $dataget = $_GET;
-        $areacode=[];
-        $teccode=[];
+        $areacodes=[];
+        $teccodes=[];
 
         foreach ($dataget as $key => $value) {
             $existareacode = strpos($key,'printArea_');
             if($existareacode > -1){
-                $areacode[] = $value;
-                $teccode[] = $dataget['teccode_'.$value];
+                $areacodes[] = $value;
+                $teccodes[] = $dataget['teccode_'.$value];
+                $dataget['price_' . $value] = $this->calculaPrecioPrint($value, $dataget);
             }
         }
 
-        $dataget['areacode'] = $areacode;
-        $dataget['teccode'] = $teccode;
-
-        
-        $idProduct = (int) $params['product']['id_product'];
-        $reference = $params['product']['reference'];        
-        $printjobs = $this->getItemsAreas($reference);
+        $dataget['areacode'] = $areacodes;
+        $dataget['teccode'] = $teccodes;
 
         if($printjobs){
             $this->context->smarty->assign(
@@ -847,6 +863,43 @@ class Rj_MakitoSync extends Module
             dump($idProduct, $printjobs, $dataget);
             return $this->display(__FILE__, 'printjobs_product.tpl');
         }
+    }
+
+
+    public function calculaPrecioPrint($areacode, $dataget)
+    {
+        $reference = $dataget['productreference'];
+        $teccode = $dataget['teccode_'.$areacode];
+        $cantidad = (int)$dataget['qty'];
+        $cantidadcolor = (int)$dataget['qcolors_'.$areacode];
+        $cliche = $dataget['cliche_'.$areacode];
+
+        $dataTypePrint = $this->getTypePrint($areacode, $reference, $teccode);
+         
+        for ($i=1; $i <= 7; $i++) { 
+            $amountunder = (int)$dataTypePrint['amountunder' . $i];
+            if ($amountunder > 0 && $cantidad <= $amountunder) {
+                $typetarifa = $i;
+                break;
+            }
+        }
+          
+        $priceTarifa = $dataTypePrint['price' . $typetarifa];
+        $precioprint = $cantidad * $priceTarifa;
+        if ($precioprint < $dataTypePrint['minjob']) {
+            $precioprint = $dataTypePrint['minjob'];
+            $preciounidad = $precioprint / $cantidad;
+            $precioprint = $precioprint * $cantidadcolor;
+        } else {
+            if($cantidadcolor > 1){
+                $precioprintcoloradicional = $cantidad * $dataTypePrint['priceaditionalcol' . $typetarifa] * $cantidadcolor;
+                $precioprint += $precioprintcoloradicional;
+            }
+        }
+
+        $priceCliche = ($cliche) ? $dataTypePrint['cliche'] * $cantidadcolor : $dataTypePrint['clicherep'] * $cantidadcolor;
+
+        return $precioprint + $priceCliche;
     }
 
     public function hookActionFrontControllerSetMedia()

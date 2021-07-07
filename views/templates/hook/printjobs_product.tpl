@@ -1,5 +1,5 @@
 <div class="accordion" id="accordionPrintJobs">
-    <input type="hidden" name="productreference_printjobs" id="productreference_printjobs" value="{$printjobs[0].reference}">
+    <input type="hidden" name="productreference" id="productreference" value="{$printjobs[0].reference}">
     {assign var="cliche" value=1}
     
     {foreach from=$printjobs item=printjob}
@@ -55,6 +55,7 @@
                                                         {$printjob.areahight = $dataselect["heigth_"|cat:$teccode.areacode]}
                                                         {$printjob.cliche = $teccode.cliche}
                                                         {$printjob.clicherep = $teccode.clicherep}
+                                                        {$printjob.priceprint = $dataselect["price_"|cat:$teccode.areacode]}
                                                         {$cliche = $dataselect["cliche_"|cat:$teccode.areacode]}
                                                     {/if}
                                                 {/if}
@@ -85,8 +86,6 @@
                                             {$foo} - {if $foo==1} {l s="color" mod='rj_makitosync'}{else}{l s="Colors" mod='rj_makitosync'}{/if}
                                         </option>
                                         {/for}
-                                        
-
                                     </select>
                                 </div>
                             </div>
@@ -119,15 +118,12 @@
                             <div class="col-md-12">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="cliche_{$printjob.areacode}"
-<<<<<<< HEAD
                                         id="cliche_{$printjob.areacode}" data-value="{$printjob.cliche|string_format:"%.2f"}" value="1" 
-=======
-                                        id="cliche_{$printjob.areacode}" value="1" 
->>>>>>> 4f53d2985b008dbd61bfc5e2043b25788ba70ac0
                                         {if $cliche == 1} checked{/if}  
                                         {if !in_array($printjob.areacode, $dataselect)} disabled {/if}>
                                     <label class="form-check-label" for="cliche_{$printjob.areacode}">
-                                        Cliché = {$printjob.cliche|string_format:"%.2f"}
+                                        {l s='Cliché' mod='rj_makitosync'} = 
+                                        <span>{$printjob.cliche|string_format:"%.2f"}</span> €
                                     </label>
                                 </div>
                                 <div class="form-check">
@@ -136,17 +132,18 @@
                                         {if $cliche == 2} checked{/if} 
                                         {if !in_array($printjob.areacode, $dataselect)} disabled {/if}>
                                     <label class="form-check-label" for="clicherep_{$printjob.areacode}">
-                                        Repetición Cliché = {$printjob.clicherep|string_format:"%.2f"}
+                                        {l s='Repetición Cliché' mod='rj_makitosync'} = 
+                                        <span>{$printjob.clicherep|string_format:"%.2f"}</span> €
                                     </label>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12 text-right">
-                                <div class="current-price">
+                                <div class="current-price-print">
                                     <h4 class="text-right">Price:
-                                        <span class="price-print" id="price-print_{$printjob.areacode}" content="0.00">0.00 €</span>
-                                        <input type="hidden" id="price_{$printjob.areacode}" name="price_{$printjob.areacode}">
+                                        <span class="price-print" id="price-print_{$printjob.areacode}">{$printjob.priceprint}</span> €
+                                        <input type="hidden" id="price_{$printjob.areacode}" name="price_{$printjob.areacode}" value="{$printjob.priceprint}">
                                     </h4>
                                 </div>
                             </div>
@@ -159,8 +156,3 @@
     {/foreach}
 </div>
 
-<script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', () => {
-        
-    });
-</script>

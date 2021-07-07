@@ -50,7 +50,7 @@ class Rj_MakitoSyncFrontSyncModuleFrontController extends ModuleFrontController
         if ($action == 'selectColor') {
             
             $printJobs = $this->module->getTypePrint($areacode, $reference, $teccode);
-            $this->printJobs = $printJobs[0];
+            $this->printJobs = $printJobs;
         }
         
 
@@ -69,5 +69,15 @@ class Rj_MakitoSyncFrontSyncModuleFrontController extends ModuleFrontController
 
         $this->context->smarty->assign('printJobs', $this->printJobs);
         $this->setTemplate('module:rj_makitosync/views/templates/hook/optionsprintJobs.tpl');
+    }
+
+    /**
+     * Calculate the price of the product in the cart
+     * @param $params
+     * @param array $customization_data
+     * @return float
+     */
+    public function priceCalculation($params, $customization_data = array())
+    {
     }
 }
