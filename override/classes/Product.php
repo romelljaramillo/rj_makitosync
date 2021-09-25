@@ -57,39 +57,47 @@ class Product extends ProductCore
             return $price;
         }
 
-        $_GET;
-        $_POST;
-        
         $price = Product::incrementPriceRoanja($price);
-        $pricePrint = Product::calculaPricePrintMakito(); 
-        static $address = null;
-        static $context = null;
-
-        if ($context == null) {
-            $context = Context::getContext()->cloneContext();
-        }
-
-        if ($address === null) {
-            if (is_object($context->cart) && $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')} != null) {
-                $id_address = $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
-                $address = new Address($id_address);
-            } else {
-                $address = new Address();
+       
+        $pricePrint = Product::calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity); 
+        
+        if ($pricePrint) {
+            static $address = null;
+            static $context = null;
+    
+            if ($context == null) {
+                $context = Context::getContext()->cloneContext();
             }
+    
+            if ($address === null) {
+                if (is_object($context->cart) && $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')} != null) {
+                    $id_address = $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
+                    $address = new Address($id_address);
+                } else {
+                    $address = new Address();
+                }
+            }
+    
+            $address->id_country = $id_country;
+            $address->id_state = $id_state;
+            $address->postcode = $zipcode;
+    
+            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $id_product, $context));
+            $product_tax_calculator = $tax_manager->getTaxCalculator();
+    
+            if ($use_tax) {
+                $pricePrint = $product_tax_calculator->addTaxes($pricePrint);
+            }
+            
+            $price += $pricePrint;
         }
 
-        $address->id_country = $id_country;
-        $address->id_state = $id_state;
-        $address->postcode = $zipcode;
-
-        $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $id_product, $context));
-        $product_tax_calculator = $tax_manager->getTaxCalculator();
-
-        if ($use_tax) {
-            $pricePrint = $product_tax_calculator->addTaxes($pricePrint);
+        if (Tools::getValue('controller') == 'product') {
+            $price*=$quantity;
         }
         
-        return $price + $pricePrint;
+        return $price;
+
     }
 
     public static function incrementPriceRoanja($price)
@@ -105,18 +113,26 @@ class Product extends ProductCore
          return $price;
     }
 
-    public static function calculaPricePrintMakito()
+    public static function calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity)
     {
         $pricePrint = 0;
-        $dataprint = rj_makitosync::getValuesPrintJobs();
-        if($dataprint){
-            foreach ($dataprint as $datacode) {
-                $pricePrint += RjMakitoItemPrint::calculaPrecioPrint($datacode);
-            }
+        $dataprint = [];
+        // $processcart = false;
+        $_GET;
+        $_POST;
+
+        if (Tools::getValue('controller') == 'cart' && $id_cart ||  Tools::getValue('action') == 'add-to-cart' && $id_cart ) {
+            $dataprint = rj_makitosync::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
+        // } elseif(Tools::getValue('action') === 'show' && $id_cart) {
+            // $dataprint = rj_makitosync::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
+        } else {
+            $dataprint = rj_makitosync::getValuesPrintJobs();
         }
 
-        if(Tools::getValue('controller') === "cart"){
-            self::$pricePrint = $pricePrint;
+        if($dataprint){
+            foreach ($dataprint as $datacode) {
+                $pricePrint += RjMakitoItemPrint::calculaPrecioPrint($datacode) / $quantity;
+            }
         }
 
         return $pricePrint;
