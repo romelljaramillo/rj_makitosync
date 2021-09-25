@@ -27,20 +27,20 @@
 */
 
 $(document).ready(function () {
-    console.log('ready');
     $('body').on('change touchspin.on.startspin', '#accordionPrintJobs [name]', function (event) {
         event.preventDefault();
-        // console.log(this);
-        // console.log(event.target);
-        let name = this.name;
+        console.log(this);
         let areacode = $(this).parents('.areacode').attr('data-areacode');
+        if(activeInputs(areacode, false) && validaWidthSize(areacode) && validaHeigthSize(areacode)){
+            prestashop.emit('updateProduct',event);
+        }
 
-        // console.log('name seleccionado: ' + name);
-        // console.log('areacode seleccionado' + areacode);
+        /* let name = this.name;
+        let areacode = $(this).parents('.areacode').attr('data-areacode');
         let nameSelect = name.substr(0,name.indexOf('_'+areacode,0));
 
         switch (nameSelect) {
-            case 'printArea':
+            case 'areacode':
                     getPrintArea(areacode);
                 break;
             case 'teccode':
@@ -55,31 +55,23 @@ $(document).ready(function () {
         
             default:
                 break;
-        }
+        } */
 
     });
-    
-    function getPrintArea(areacode) {
-        let checked = $('input[name=printArea_' + areacode +']').is(':checked');
-        if(checked) {
-            let dataarea = getDataAreaForm(areacode);
-            // console.log('input Area Seleccionado');
-            activeInputs(areacode, false);
-            getTypePrint(areacode, dataarea);
-        } else {
-            // console.log('input Area Des-seleccionado');
-            activeInputs(areacode);
-            changePrice(areacode);
-        }
+
+    function activeInputs(areacode, active = true) {
+        $('#teccode_' + areacode).prop('disabled', active);
+        $('#qcolors_' + areacode).prop('disabled', active);
+        $('#areawidth_' + areacode).prop('disabled', active);
+        $('#areahight_' + areacode).prop('disabled', active);
+        $('#cliche_' + areacode).prop('disabled', active);
+        $('#clicherep_' + areacode).prop('disabled', active);
+        $('#price_' + areacode).prop('disabled', active);
+        return true;
     }
 
-    prestashop.on('updatedProduct', (args) => {
-        console.log(args);
-        changuePriceProduct();
-    }); 
-
     function getDataAreaForm(areacode) {
-        let reference = $('input#productreference').val();
+        let reference = $('input#product_reference').val();
         let teccode = $('#teccode_' + areacode).val();
         let qcolors = $('#qcolors_' + areacode).val();
         let cliche = $('input:radio[name=cliche_' + areacode + ']:checked').val();
@@ -92,15 +84,6 @@ $(document).ready(function () {
             cliche: cliche,
             action: ''
         };
-    }
-
-    function activeInputs(areacode, active = true) {
-        $('#teccode_' + areacode).prop('disabled', active);
-        $('#qcolors_' + areacode).prop('disabled', active);
-        $('#width_' + areacode).prop('disabled', active);
-        $('#heigth_' + areacode).prop('disabled', active);
-        $('#cliche_' + areacode).prop('disabled', active);
-        $('#clicherep_' + areacode).prop('disabled', active);
     }
 
     function getTypePrint(areacode, dataarea) {
@@ -130,6 +113,40 @@ $(document).ready(function () {
                 console.log(err);
             }
         });
+    }
+
+    function validaWidthSize(areacode) {
+        if ($('#areawidth_' + areacode).val() > parseFloat($('#areawidth_' + areacode).attr('max'))
+        || $('#areawidth_' + areacode).val() < parseFloat($('#areawidth_' + areacode).attr('min'))) {
+            $('#areawidth_' + areacode).parent().addClass("has-error");
+            return false;
+        } else {
+            $('#areawidth_' + areacode).parent().removeClass("has-error");
+            return true;
+        }
+    }
+
+    function validaHeigthSize(areacode) {
+        if ($('#areahight_' + areacode).val() > parseFloat($('#areahight_' + areacode).attr('max'))
+        || $('#areahight_' + areacode).val() < parseFloat($('#areahight_' + areacode).attr('min'))) {
+            $('#areahight_' + areacode).parent().addClass("has-error");
+            return false;
+        } else {
+            $('#areahight_' + areacode).parent().removeClass("has-error");
+            return true;
+        }
+    }
+    
+    function getPrintArea(areacode) {
+        let checked = $('input[name=areacode_' + areacode +']').is(':checked');
+        if(checked) {
+            let dataarea = getDataAreaForm(areacode);
+            activeInputs(areacode, false);
+            getTypePrint(areacode, dataarea);
+        } else {
+            activeInputs(areacode);
+            changePrice(areacode);
+        }
     }
 
     // function getColors(dataarea, action) {
@@ -249,8 +266,6 @@ $(document).ready(function () {
         $("label[for=cliche_" + areacode + "] span").html(cliche).fadeIn();
         $("label[for=clicherep_" + areacode + "] span").html(clicherep).fadeIn();
 
-            
-
     }
     
     function getCliche(areacode) {
@@ -272,6 +287,9 @@ $(document).ready(function () {
     }
 
     function changuePriceProduct() {
+        console.log('changuePriceProduct');
+        let dataUpdatePrint;
+        // prestashop.emit('updateProduct');
         let price = parseFloat($('.current-price span[itemprop=price]').attr('content'));
         let cantidad = parseInt($('#quantity_wanted').val());
         let pricePrintArea = getPricePrintArea();

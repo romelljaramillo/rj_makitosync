@@ -110,6 +110,7 @@ class Rj_MakitoSync extends Module
                     'displayProductAdditionalInfo',
                     'displayReassurance',
                     'displayProductListFunctionalButtons',
+                    'actionCartSave'
                 )
             )
         ) {
@@ -181,7 +182,7 @@ class Rj_MakitoSync extends Module
         /**
          * If values have been submitted in the form, process.
          */
-        if (((bool)Tools::isSubmit('submit_url_service')) == true) {
+        if (Tools::isSubmit('submitUrlService') || Tools::isSubmit('submitPriceIncrement')) {
             $this->postProcess();
         }
 
@@ -192,11 +193,31 @@ class Rj_MakitoSync extends Module
         $this->context->smarty->assign('module_dir', $this->_path);
 
         $this->_html .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+        $this->_html .= $this->renderFormPrice();
         $this->_html .= $this->renderFormUrlService();
         $this->_html .= $this->renderFormManualImport();
         $this->_html .= $this->renderList();
 
         return $this->_html;
+    }
+
+    /**
+     * Save form data.
+     */
+    protected function postProcess()
+    {
+        $form_values = [];
+        if(Tools::isSubmit('submitUrlService')){
+            $form_values = $this->getConfigFormValuesUrlService();
+        }
+
+        if(Tools::isSubmit('submitPriceIncrement')){
+            $form_values = $this->getConfigFieldsFormPrice();
+        }
+
+        foreach (array_keys($form_values) as $key) {
+            Configuration::updateValue($key, Tools::getValue($key));
+        }
     }
 
     /**
@@ -217,7 +238,7 @@ class Rj_MakitoSync extends Module
         $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
 
         $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submit_url_service';
+        $helper->submit_action = 'submitUrlService';
         $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
@@ -228,6 +249,94 @@ class Rj_MakitoSync extends Module
         );
 
         return $helper->generateForm(array($this->getConfigFormUrlService()));
+    }
+
+    public function renderFormPrice(){
+        $fields_form = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->getTranslator()->trans('Settings', array(), 'Admin.Global'),
+                    'icon' => 'icon-cogs'
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'text',
+                        'label' => $this->getTranslator()->trans('Increment', array(), 'Modules.Rj_makitosync.Admin'),
+                        'name' => 'RJ_PRICE_INCREMENT',
+                        'class' => 'fixed-width-sm',
+                        'desc' => $this->getTranslator()->trans('Valor de incremento en precio.', array(), 'Modules.Rj_makitosync.Admin')
+                    ),
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->getTranslator()->trans('Tipo de incremento', array(), 'Modules.Rj_makitosync.Admin'),
+                        'name' => 'RJ_PRICE_INCREMENT_TYPE',
+                        'desc' => $this->getTranslator()->trans('Seleccione SI = Porcentaje ó NO = Valor', array(), 'Modules.Rj_makitosync.Admin'),
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => 1,
+                                'label' => $this->getTranslator()->trans('Porcentaje', array(), 'Modules.Rj_makitosync.Admin')
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => 0,
+                                'label' => $this->getTranslator()->trans('Valor', array(), 'Modules.Rj_makitosync.Admin')
+                            )
+                        ),
+                    ),
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->getTranslator()->trans('Alcance de incremento total', array(), 'Modules.Imageslider.Admin'),
+                        'name' => 'RJ_PRICE_ALCANCE',
+                        'desc' => $this->getTranslator()->trans('incremento al total del precio de todos los productos o solo la impresión.', array(), 'Modules.Imageslider.Admin'),
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => 1,
+                                'label' => $this->getTranslator()->trans('Enabled', array(), 'Admin.Global')
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => 0,
+                                'label' => $this->getTranslator()->trans('Disabled', array(), 'Admin.Global')
+                            )
+                        ),
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->getTranslator()->trans('Save', array(), 'Admin.Actions'),
+                )
+            ),
+        );
+
+        $helper = new HelperForm();
+        $helper->show_toolbar = false;
+        $helper->table = $this->table;
+        $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
+        $helper->default_form_language = $lang->id;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $this->fields_form = array();
+
+        $helper->identifier = $this->identifier;
+        $helper->submit_action = 'submitPriceIncrement';
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->tpl_vars = array(
+            'fields_value' => $this->getConfigFieldsFormPrice(),
+            'languages' => $this->context->controller->getLanguages(),
+            'id_language' => $this->context->language->id
+        );
+
+        return $helper->generateForm(array($fields_form));
+    }
+
+    public function getConfigFieldsFormPrice()
+    {
+        return array(
+            'RJ_PRICE_INCREMENT' => Configuration::get('RJ_PRICE_INCREMENT', true),
+            'RJ_PRICE_INCREMENT_TYPE' => Configuration::get('RJ_PRICE_INCREMENT_TYPE', true),
+            'RJ_PRICE_ALCANCE' => Configuration::get('RJ_PRICE_ALCANCE', null)
+        );
     }
 
     /**
@@ -709,18 +818,6 @@ class Rj_MakitoSync extends Module
     }
 
     /**
-     * Save form data.
-     */
-    protected function postProcess()
-    {
-        $form_values = $this->getConfigFormValuesUrlService();
-
-        foreach (array_keys($form_values) as $key) {
-            Configuration::updateValue($key, Tools::getValue($key));
-        }
-    }
-
-    /**
      * Add the CSS & JavaScript files you want to be loaded in the BO.
      */
     public function hookBackOfficeHeader()
@@ -771,135 +868,244 @@ class Rj_MakitoSync extends Module
         return Db::getInstance()->executeS($sql);
     }
 
-    public function getItemsAreas($reference)
+    public function hookActionProductAdd($params)
     {
-        $sql = new DbQuery();
-        $sql->select('it.*, pa.*, pj.cliche, pj.clicherep');
-        $sql->from('rjmakito_itemprint', 'it');
-        $sql->rightJoin('rjmakito_printarea', 'pa', 'it.areacode = pa.areacode AND it.reference = pa.reference');
-        $sql->rightJoin('rjmakito_printjobs', 'pj', 'it.teccode = pj.teccode');
-        $sql->where('it.reference = "' . $reference . '"');
-        $sql->groupby('it.areacode');
-        
-        if($query = Db::getInstance()->executeS($sql)){
-            foreach ($query as $key => $item) {
-                $query[$key]['printjobs'] = $this->getTypePrint($item['areacode'], $item['reference']);
-                $query[$key]['priceprint'] = 0;
+        // dump($params);
+    }
+
+    public function hookActionCartSave($params)
+    {
+        $_GET;
+        $_POST;
+        $cart = $params['cart'];
+        if(Tools::getValue('controller') == "cart" && $cart){
+
+            if (Tools::getIsset('add') || Tools::getIsset('update')) {
+                $this->processUpdatePrintInCart($cart->id, $cart->id_shop);
+
+            } elseif (Tools::getIsset('delete')) {
+                $this->processDeletePrintInCart($cart->id);
             }
-            return $query;
+
         }
     }
 
-    public function getTypePrint($areacode, $reference, $teccode = null)
+    public function processDeletePrintInCart($id_cart)
     {
-        $sql = new DbQuery();
-        $sql->select('j.*, it.includedcolour, it.maxcolour, it.areacode');
-        $sql->from('rjmakito_itemprint', 'it');
-        if(is_null($teccode)){
-            $sql->rightJoin('rjmakito_printjobs', 'j', 'it.teccode = j.teccode');
-            $sql->where('it.areacode = ' . (int)$areacode . ' and it.reference ='. $reference);
-        } else {
-            $sql->innerJoin('rjmakito_printjobs', 'j', 'it.teccode = j.teccode');
-            $sql->where('it.areacode = ' . (int)$areacode . ' and it.reference ='. $reference . ' and it.teccode ='. $teccode);
-        }
-        $sql->groupby('j.teccode');
-
-        $resp = Db::getInstance()->executeS($sql);
-        if(is_null($teccode)){
-
-            return $resp;
-        }
+        $_GET;
+        $_POST;
         
-        return $resp[0];
+        $id_product = Tools::getValue('id_product');
+        $id_product_attribute = Tools::getValue('id_product_attribute');
+
+        $result = Db::getInstance()->execute('
+        DELETE FROM `' . _DB_PREFIX_ . 'rjmakito_cart`
+        WHERE `id_cart` = '. (int)$id_cart .'
+        AND `id_product` = ' . (int)$id_product . '
+        AND `id_product_attribute` = ' . (int)$id_product_attribute);
     }
 
-    public function hookActionProductAdd()
+    public function processUpdatePrintInCart($id_cart, $id_shop)
     {
-        /* Place your code here. */
+        $idProductAttribute = 0;
+
+        if (Tools::getIsset('group')) {
+            $idProductAttribute = (int) Product::getIdProductAttributeByIdAttributes(
+                Tools::getValue('id_product'),
+                Tools::getValue('group'),
+                true
+            );
+        }
+
+        $getvalues = self::getValuesPrintJobs();
+        
+        // consultar en la tabla rjmakito_cart
+        if(!$this->makitoCartExists($id_cart, $idProductAttribute)){
+            foreach ($getvalues as $key => $value) {
+                $result_add = Db::getInstance()->insert('rjmakito_cart', [
+                    'id_cart' => (int)$id_cart,
+                    'id_product_attribute' => $idProductAttribute,
+                    'id_shop' => (int)$id_shop,
+                    'areacode' => $value['areacode'],
+                    'reference' => $value['reference'],
+                    'teccode' => $value['teccode'],
+                    'id_product' => (int)Tools::getValue('id_product'),
+                    'qty' => (int)$value['qty'],
+                    'qcolors' => (int)$value['qcolors'],
+                    'areawidth' => $value['areawidth'],
+                    'areahight' => $value['areahight'],
+                    'cliche' => $value['clicheactive'],
+                    'price' => null,
+                    'date_add' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        } else {
+            $this->updateMakitoCartQuantity($id_cart, Tools::getValue('id_product'), $idProductAttribute);
+        }
+    }
+
+    /* public function hookActionCartUpdateQuantityBefore($params)
+        {
+            $_GET;
+            $_POST;
+        }
+
+        public function hookActionCartSummary($params)
+        {
+            $_GET;
+            $_POST;
+    } */
+
+    public function getValuesMakitoCart($id_cart, $id_product, $id_product_attribute)
+    {
+        $dataPrint = [];
+
+        $dataPrintCart = Db::getInstance()->executeS(
+            'SELECT * FROM `' . _DB_PREFIX_ . 'rjmakito_cart` mc
+            WHERE mc.id_cart = ' . (int) $id_cart . '
+            AND mc.id_product = ' . (int) $id_product . '
+            AND mc.id_product_attribute = ' . (int) $id_product_attribute
+        );
+
+        foreach ($dataPrintCart as $data) {
+            $areacode = $data['areacode'];
+            $dataPrint[$areacode]['areacode'] = $areacode;
+            $dataPrint[$areacode]['reference'] = $data['reference'];
+            $dataPrint[$areacode]['teccode'] = $data['teccode'];
+            $dataPrint[$areacode]['areawidth'] = $data['areawidth'];
+            $dataPrint[$areacode]['areahight'] = $data['areahight'];
+            $dataPrint[$areacode]['qcolors'] = $data['qcolors'];
+            $dataPrint[$areacode]['clicheactive'] = $data['cliche'];
+            $dataPrint[$areacode]['qty'] = $data['qty'];
+        }
+
+        return $dataPrint;
+    }
+
+    public function getValuesMakitoCartDDD($id_cart)
+    {
+        $dataPrintCart = Db::getInstance()->executeS(
+            'SELECT * FROM `' . _DB_PREFIX_ . 'rjmakito_cart` mc
+            WHERE mc.id_cart = ' . (int) $id_cart 
+        );
+
+        foreach ($dataPrintCart as $data) {
+            $areacode = $data['areacode'];
+            $dataPrint[$areacode]['areacode'] = $areacode;
+            $dataPrint[$areacode]['reference'] = $data['reference'];
+            $dataPrint[$areacode]['teccode'] = $data['teccode'];
+            $dataPrint[$areacode]['areawidth'] = $data['areawidth'];
+            $dataPrint[$areacode]['areahight'] = $data['areahight'];
+            $dataPrint[$areacode]['qcolors'] = $data['qcolors'];
+            $dataPrint[$areacode]['clicheactive'] = $data['cliche'];
+            $dataPrint[$areacode]['qty'] = $data['qty'];
+        }
+
+        return $dataPrint;
+    }
+
+    public static function getValuesPrintJobs()
+    {
+        if (Tools::getValue('areacode')) {
+            $dataPrint = [];
+            $areacodes = Tools::getValue('areacode');
+            $reference = Tools::getValue('reference');
+            $teccode = Tools::getValue('teccode');
+            $areawidth = Tools::getValue('areawidth');
+            $areahight = Tools::getValue('areahight');
+            $qcolors = Tools::getValue('qcolors');
+            $clicheactive = Tools::getValue('cliche');
+            $qty = Tools::getValue('qty');
+
+            foreach ($areacodes as $areacode) {
+                $dataPrint[$areacode]['areacode'] = $areacode;
+                $dataPrint[$areacode]['reference'] = $reference;
+                $dataPrint[$areacode]['teccode'] = $teccode[$areacode];
+                $dataPrint[$areacode]['areawidth'] = $areawidth[$areacode];
+                $dataPrint[$areacode]['areahight'] = $areahight[$areacode];
+                $dataPrint[$areacode]['qcolors'] = $qcolors[$areacode];
+                $dataPrint[$areacode]['clicheactive'] = $clicheactive[$areacode];
+                $dataPrint[$areacode]['qty'] = $qty;
+            }
+            return $dataPrint;
+    
+        } 
+        
+        return false;
+    }
+
+    public function updateMakitoCartQuantity($id_cart, $id_product, $id_product_attribute)
+    {
+        $updateQuantity = $this->getCartProductQuantity($id_cart, $id_product, $id_product_attribute);
+        Db::getInstance()->execute(
+            'UPDATE `' . _DB_PREFIX_ . 'rjmakito_cart`
+                SET `qty` = '. $updateQuantity . '
+                WHERE `id_cart` = ' . (int)$id_cart .
+                ' AND `id_product` = ' . (int)$id_product .
+            ' AND `id_product_attribute` = ' . (int)$id_product_attribute);
+    }
+
+    public function getCartProductQuantity($id_cart, $id_product, $id_product_attribute)
+    {
+        $req = 'SELECT cp.`quantity`
+                FROM `'._DB_PREFIX_.'cart_product` cp
+                WHERE cp.`id_cart` = '.(int)$id_cart.'
+                AND cp.`id_product` = '.(int)$id_product.'
+                AND cp.`id_product_attribute` = '.(int)$id_product_attribute;
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($req);
+    }
+
+    public function makitoCartExists($id_cart, $id_product_attribute)
+    {
+        $req = 'SELECT mc.`id_cart`
+                FROM `'._DB_PREFIX_.'rjmakito_cart` mc
+                WHERE mc.`id_cart` = '.(int)$id_cart.'
+                AND mc.`id_product_attribute` = '.(int)$id_product_attribute;
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($req);
+
+        return ($row);
     }
 
     public function hookDisplayProductAdditionalInfo($params)
     {
-        dump($params);
         $paramsProduct = $params['product'];
         $dataProduct=[];
-        // foreach ((array)$paramsProduct as $key => $value) {
-        //     if(substr($key,-strlen('product')) === 'product') {
-        //         $dataProduct = $value;
-        //     }
-        // }
-        // obtenemos la información del producto para procesarla y sumar el precio de impresión
-        // dump($dataProduct['price_amount'] );
 
-        $idProduct = (int) $params['product']['id_product'];
+        $idProduct = (int)$params['product']['id_product'];
         $reference = $params['product']['reference'];        
-        $printjobs = $this->getItemsAreas($reference);
-
+        $printjobs = RjMakitoItemPrint::getItemsAreas($reference);
+        
         $dataget = $_GET;
-        $areacodes=[];
-        $teccodes=[];
+        $_POST;
 
-        foreach ($dataget as $key => $value) {
-            $existareacode = strpos($key,'printArea_');
-            if($existareacode > -1){
-                $areacodes[] = $value;
-                $teccodes[] = $dataget['teccode_'.$value];
-                $dataget['price_' . $value] = $this->calculaPrecioPrint($value, $dataget);
+        $getvalues = self::getValuesPrintJobs();
+        if($getvalues){
+            foreach ($getvalues as $areacode => $dataprint) {
+                $printjobs[$areacode]['maxcolour'] = $printjobs[$areacode]['printjobs'][$dataprint['teccode']]['maxcolour'];
+                $dataprint['qcolors'] = ($printjobs[$areacode]['maxcolour'] < $dataprint['qcolors']) ? $printjobs[$areacode]['maxcolour'] : $dataprint['qcolors'];
+                $printjobs[$areacode]['cliche'] = $printjobs[$areacode]['printjobs'][$dataprint['teccode']]['cliche'] * $dataprint['qcolors'];
+                $printjobs[$areacode]['clicherep'] = $printjobs[$areacode]['printjobs'][$dataprint['teccode']]['clicherep'] * $dataprint['qcolors'];
+                $printjobs[$areacode]['active'] = true;
+                $printjobs[$areacode]['priceprint'] = RjMakitoItemPrint::calculaPrecioPrint($dataprint);
+                $printjobs[$areacode] = array_merge($printjobs[$areacode],$dataprint);
             }
         }
-
-        $dataget['areacode'] = $areacodes;
-        $dataget['teccode'] = $teccodes;
 
         if($printjobs){
             $this->context->smarty->assign(
                 array(
+                    'reference' => $reference,
                     'printjobs' => $printjobs,
                     'idProduct' => $idProduct,
-                    'dataselect' => $dataget
+                    //dump
+                    'dataget' => $dataget,
+                    'getvalues' => $getvalues,
                 )
             );
 
-            dump($idProduct, $printjobs, $dataget);
             return $this->display(__FILE__, 'printjobs_product.tpl');
+            dump($idProduct, $printjobs, $dataget, $getvalues);
         }
-    }
-
-
-    public function calculaPrecioPrint($areacode, $dataget)
-    {
-        $reference = $dataget['productreference'];
-        $teccode = $dataget['teccode_'.$areacode];
-        $cantidad = (int)$dataget['qty'];
-        $cantidadcolor = (int)$dataget['qcolors_'.$areacode];
-        $cliche = $dataget['cliche_'.$areacode];
-
-        $dataTypePrint = $this->getTypePrint($areacode, $reference, $teccode);
-         
-        for ($i=1; $i <= 7; $i++) { 
-            $amountunder = (int)$dataTypePrint['amountunder' . $i];
-            if ($amountunder > 0 && $cantidad <= $amountunder) {
-                $typetarifa = $i;
-                break;
-            }
-        }
-          
-        $priceTarifa = $dataTypePrint['price' . $typetarifa];
-        $precioprint = $cantidad * $priceTarifa;
-        if ($precioprint < $dataTypePrint['minjob']) {
-            $precioprint = $dataTypePrint['minjob'];
-            $preciounidad = $precioprint / $cantidad;
-            $precioprint = $precioprint * $cantidadcolor;
-        } else {
-            if($cantidadcolor > 1){
-                $precioprintcoloradicional = $cantidad * $dataTypePrint['priceaditionalcol' . $typetarifa] * $cantidadcolor;
-                $precioprint += $precioprintcoloradicional;
-            }
-        }
-
-        $priceCliche = ($cliche) ? $dataTypePrint['cliche'] * $cantidadcolor : $dataTypePrint['clicherep'] * $cantidadcolor;
-
-        return $precioprint + $priceCliche;
     }
 
     public function hookActionFrontControllerSetMedia()

@@ -45,12 +45,15 @@ class AdminMakitoSyncController extends ModuleAdminController
         if (!Tools::getValue('realedit')) {
             $this->deleted = false;
         }
-
+        // $this->bulk_actions['exportToTxtCorreos'] = array(
+        //     'text' => $correos->getMessage(0),
+        //     'icon' => 'icon-file-text-o',
+        // );
         $this->bulk_actions = array(
             'generateLabel' => array(
                 'text' => $this->trans('Generate labels', array(), 'Modules.Rj_MakitoSync.Admin'),
                 'confirm' => $this->trans('Genereate labels for selected items?', array(), 'Modules.Rj_MakitoSync.Admin'),
-                'icon' => 'icon-edit'
+                'icon' => 'icon-file-text-o',
             ),
             'updateStatus' => array(
                 'text' => $this->trans('Update Status', array(), 'Modules.Rj_MakitoSync.Admin'),

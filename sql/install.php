@@ -88,6 +88,25 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_itemprint` (
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
 
+$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_cart` (
+    `id_cart` INT(10) UNSIGNED NOT NULL,
+    `id_shop` INT(10) UNSIGNED NOT NULL,
+    `id_product` INT(10) UNSIGNED NOT NULL,
+    `areacode` INT(10) UNSIGNED NOT NULL,
+    `reference` varchar(50) NOT NULL,
+    `teccode` varchar(50) NOT NULL,
+    `id_order` INT(10) UNSIGNED NOT NULL,
+    `id_customer` INT(10) UNSIGNED NOT NULL,
+    `qty` INT(10) UNSIGNED NOT NULL,
+    `qcolors` INT(10) NOT NULL,
+    `areawidth` DECIMAL(20,6) NOT NULL,
+    `areahight` DECIMAL(20,6) NOT NULL,
+    `cliche` tinyint(1) UNSIGNED NOT NULL,
+    `price` DECIMAL(20,6) NOT NULL,
+    `date_add` datetime NOT NULL,
+    PRIMARY KEY  (`id_cart`, `id_product`,`reference`,`teccode`,`areacode`),
+    INDEX ( `id_cart` , `id_order`, `id_product`, `id_customer`)
+) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {
