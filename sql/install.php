@@ -89,14 +89,17 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_itemprint` (
 
 
 $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_cart` (
+    `id_rjmakito_cart` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `id_cart` INT(10) UNSIGNED NOT NULL,
+    `id_product_attribute` INT(10) UNSIGNED NOT NULL,
     `id_shop` INT(10) UNSIGNED NOT NULL,
     `id_product` INT(10) UNSIGNED NOT NULL,
+    `id_order` INT(10) UNSIGNED NOT NULL,
+    `id_customer` INT(10) UNSIGNED NOT NULL,
+    `id_customization` INT(10) UNSIGNED NOT NULL,
     `areacode` INT(10) UNSIGNED NOT NULL,
     `reference` varchar(50) NOT NULL,
     `teccode` varchar(50) NOT NULL,
-    `id_order` INT(10) UNSIGNED NOT NULL,
-    `id_customer` INT(10) UNSIGNED NOT NULL,
     `qty` INT(10) UNSIGNED NOT NULL,
     `qcolors` INT(10) NOT NULL,
     `areawidth` DECIMAL(20,6) NOT NULL,
@@ -104,7 +107,8 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'rjmakito_cart` (
     `cliche` tinyint(1) UNSIGNED NOT NULL,
     `price` DECIMAL(20,6) NOT NULL,
     `date_add` datetime NOT NULL,
-    PRIMARY KEY  (`id_cart`, `id_product`,`reference`,`teccode`,`areacode`),
+    `date_upd` datetime NOT NULL,
+    PRIMARY KEY (`id_rjmakito_cart`, `id_cart`, `id_product`,`id_customization`,`reference`,`teccode`,`areacode`),
     INDEX ( `id_cart` , `id_order`, `id_product`, `id_customer`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 

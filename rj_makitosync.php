@@ -37,6 +37,7 @@ if (file_exists($autoloadPath)) {
 include_once(__DIR__ . '/classes/RjMakitoPrintjobs.php');
 include_once(__DIR__ . '/classes/RjMakitoPrintArea.php');
 include_once(__DIR__ . '/classes/RjMakitoItemPrint.php');
+include_once(__DIR__ . '/classes/RjMakitoCart.php');
 
 class Rj_MakitoSync extends Module
 {
@@ -110,7 +111,10 @@ class Rj_MakitoSync extends Module
                     'displayProductAdditionalInfo',
                     'displayReassurance',
                     'displayProductListFunctionalButtons',
-                    'actionCartSave'
+                    'actionCartSave',
+                    'displayCustomization',
+                    'actionObjectProductInCartDeleteAfter',
+                    'actionCartUpdateQuantityBefore'
                 )
             )
         ) {
@@ -873,30 +877,110 @@ class Rj_MakitoSync extends Module
         // dump($params);
     }
 
-    public function hookActionCartSave($params)
+    public function getCartProductQuantity($id_cart, $id_product, $id_product_attribute)
+    {
+        $req = 'SELECT cp.`quantity`
+                FROM `'._DB_PREFIX_.'cart_product` cp
+                WHERE cp.`id_cart` = '.(int)$id_cart.'
+                AND cp.`id_product` = '.(int)$id_product.'
+                AND cp.`id_product_attribute` = '.(int)$id_product_attribute;
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($req);
+    }
+
+    public function setMakitoCart($id_cart, $id_shop, $id_customer=null)
     {
         $_GET;
         $_POST;
-        $cart = $params['cart'];
-        if(Tools::getValue('controller') == "cart" && $cart){
+        $id_product_attribute = 0;
+        $id_product = (int)Tools::getValue('id_product');
 
-            if (Tools::getIsset('add') || Tools::getIsset('update')) {
-                $this->processUpdatePrintInCart($cart->id, $cart->id_shop);
+        if (Tools::getIsset('group')) {
+            $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
+                $id_product,
+                Tools::getValue('group'),
+                true
+            );
+        }
+        
+        $getvalues = self::getValuesPrintJobs();
+        if($getvalues){
+            foreach ($getvalues as $key => $value) {
+                $id_rjmakito_cart = RjMakitoCart::makitoCartExists($id_cart, $id_product, $id_product_attribute, $value['areacode']);
+                if(!$id_rjmakito_cart){
+                    $rjMakitoCart = new RjMakitoCart();
+                    $rjMakitoCart->qty = (int)$value['qty'];
+                }else{
+                    $rjMakitoCart = new RjMakitoCart((int)$id_rjmakito_cart);
+                    $qty = $this->getCartProductQuantity($id_cart, $id_product, $id_product_attribute);
+                    $rjMakitoCart->qty = (int)$qty;
+                }
+                
+                $rjMakitoCart->cliche = (int)$value['clicheactive'];
+                $rjMakitoCart->qcolors = (int)$value['qcolors'];
+                $rjMakitoCart->areahight = $value['areahight'];
+                $rjMakitoCart->areawidth = $value['areawidth'];
+                $rjMakitoCart->teccode = $value['teccode'];
+                $rjMakitoCart->reference = $value['reference'];
+                $rjMakitoCart->areacode = (int)$value['areacode'];
 
-            } elseif (Tools::getIsset('delete')) {
-                $this->processDeletePrintInCart($cart->id);
+                $rjMakitoCart->id_cart = (int)$id_cart;
+                $rjMakitoCart->id_product_attribute = (int)$id_product_attribute;
+                $rjMakitoCart->id_shop = (int)$id_shop;
+                $rjMakitoCart->id_product = (int)$id_product;
+                $rjMakitoCart->id_customer = (int)$id_customer;
+                    
+                if(!$id_rjmakito_cart){
+                    $rjMakitoCart->add();
+                }else{
+                    $rjMakitoCart->update();
+                }
             }
-
         }
     }
 
-    public function processDeletePrintInCart($id_cart)
+    public function hookActionCartSave($params)
     {
-        $_GET;
-        $_POST;
-        
-        $id_product = Tools::getValue('id_product');
-        $id_product_attribute = Tools::getValue('id_product_attribute');
+        $cart = $params['cart'];
+        if(Tools::getValue('controller') == "cart" && $cart){
+            if (Tools::getIsset('add') || Tools::getIsset('update')) {
+                $this->setMakitoCart($cart->id, $cart->id_shop, $cart->id_customer);
+            } 
+        }
+    }
+
+    public function hookDisplayCustomization($params)
+    {
+        $values = $params['customization']['value'];
+        $customizations = json_decode($values,true);
+        $arraycustomization = [];
+        foreach ($customizations as $id_rjmakito_cart) {
+            $rjMakitoCart =RjMakitoCart::getMakitoCartById($id_rjmakito_cart);
+            $typePrint = RjMakitoItemPrint::getTypePrint($rjMakitoCart['areacode'], $rjMakitoCart['reference'], $rjMakitoCart['teccode']);
+            $areaPrint = RjMakitoPrintArea::getNamePrintAreaByAreacodeRef($rjMakitoCart['areacode'], $rjMakitoCart['reference']);
+            $rjMakitoCart['areaname'] = $areaPrint['areaname'];
+            $rjMakitoCart['areaimg'] = $areaPrint['areaimg'];
+            $rjMakitoCart['typeprint'] = $typePrint['name'];
+            $arraycustomization[] = $rjMakitoCart;
+        }
+
+        $this->context->smarty->assign(
+            array(
+                'customizations' => $arraycustomization,
+            )
+        );
+
+        if($params['cart']){
+            return $this->display(__FILE__, 'customization.tpl');
+        }else{
+            return $this->display(__FILE__, 'customization-order.tpl');
+        }
+    }
+
+    public function hookActionObjectProductInCartDeleteAfter($params)
+    {
+        $id_cart = $params['id_cart'];
+        $id_product = $params['id_product'];
+        $id_product_attribute = $params['id_product_attribute'];
 
         $result = Db::getInstance()->execute('
         DELETE FROM `' . _DB_PREFIX_ . 'rjmakito_cart`
@@ -905,107 +989,121 @@ class Rj_MakitoSync extends Module
         AND `id_product_attribute` = ' . (int)$id_product_attribute);
     }
 
-    public function processUpdatePrintInCart($id_cart, $id_shop)
+    public function getCustomizationFieldIds($id_product)
     {
-        $idProductAttribute = 0;
-
-        if (Tools::getIsset('group')) {
-            $idProductAttribute = (int) Product::getIdProductAttributeByIdAttributes(
-                Tools::getValue('id_product'),
-                Tools::getValue('group'),
-                true
-            );
+        if (!Customization::isFeatureActive()) {
+            return [];
         }
 
-        $getvalues = self::getValuesPrintJobs();
-        
-        // consultar en la tabla rjmakito_cart
-        if(!$this->makitoCartExists($id_cart, $idProductAttribute)){
-            foreach ($getvalues as $key => $value) {
-                $result_add = Db::getInstance()->insert('rjmakito_cart', [
-                    'id_cart' => (int)$id_cart,
-                    'id_product_attribute' => $idProductAttribute,
-                    'id_shop' => (int)$id_shop,
-                    'areacode' => $value['areacode'],
-                    'reference' => $value['reference'],
-                    'teccode' => $value['teccode'],
-                    'id_product' => (int)Tools::getValue('id_product'),
-                    'qty' => (int)$value['qty'],
-                    'qcolors' => (int)$value['qcolors'],
-                    'areawidth' => $value['areawidth'],
-                    'areahight' => $value['areahight'],
-                    'cliche' => $value['clicheactive'],
-                    'price' => null,
-                    'date_add' => date('Y-m-d H:i:s'),
-                ]);
+        return Db::getInstance()->executeS('
+            SELECT *
+            FROM `' . _DB_PREFIX_ . 'customization_field`
+            WHERE `id_product` = ' . (int) $id_product);
+    }
+
+    public function addCustomization($id_customization)
+    {
+        $_GET;
+        $_POST;
+        $this->context = Context::getContext();
+        $id_shop = $this->context->shop->id;
+        // $context_cart = Context::getContext()->cart;
+        if (Tools::getValue('areacode')) {
+            
+            $price = 0;
+            $index = 0;
+            
+            if (!$this->context->cart->id) {
+                if (Context::getContext()->cookie->id_guest) {
+                    $guest = new Guest(Context::getContext()->cookie->id_guest);
+                    $this->context->cart->mobile_theme = $guest->mobile_theme;
+                }
+                $this->context->cart->add();
+                if ($this->context->cart->id) {
+                    Context::getContext()->cookie->id_cart = (int)$this->context->cart->id;
+                }
             }
-        } else {
-            $this->updateMakitoCartQuantity($id_cart, Tools::getValue('id_product'), $idProductAttribute);
+    
+            if (!isset($this->context->cart->id)) {
+                return false;
+            }
+    
+            $id_cart = $this->context->cart->id;
+            $id_product = Tools::getValue('id_product');
+            $quantity = Tools::getValue('qty');
+
+            if (!$field_ids = self::getCustomizationFieldIds($id_product)) {
+                return false;
+            }
+
+            foreach ($field_ids as $field_id) {
+                if ($field_id['is_module']) {
+                    $index = (int)$field_id['id_customization_field'];
+                }
+            }
+
+            if ($index) {
+                if (Tools::getIsset('group')) {
+                    $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
+                        $id_product,
+                        Tools::getValue('group'),
+                        true
+                    );
+                }
+                
+                $rjmakito_cart = RjMakitoCart::getIdMakitoCart($id_cart, $id_product, $id_product_attribute);
+
+                if ($rjmakito_cart) {
+                    if(!$rjmakito_cart['id_customization']){
+                        $id_customization = $context_cart->_addCustomization($id_product, $id_product_attribute, $index, Product::CUSTOMIZE_TEXTFIELD, json_encode($rjmakito_cart['id_rjmakito_cart']), $quantity, true);
+                        self::updateCustomizedData($id_customization);
+                        
+                        foreach ($rjmakito_cart['id_rjmakito_cart'] as $id) {
+                            $rjMakitoCart = new RjMakitoCart($id);
+                            $rjMakitoCart->id_customization = (int)$id_customization;
+                            $rjMakitoCart->update();
+                        }
+
+                    } else {
+                        return $rjmakito_cart['id_customization']; 
+                    }
+                } elseif($id_cart) {
+                    $this->setMakitoCart($id_cart, $id_shop);
+                    $this->addCustomization($id_customization);
+                } else {
+                    $context_cart->deleteCustomizationToProduct((int) $id_product, $index);
+                }
+            }
+            return $id_customization;
         }
     }
 
-    /* public function hookActionCartUpdateQuantityBefore($params)
-        {
-            $_GET;
-            $_POST;
-        }
 
-        public function hookActionCartSummary($params)
-        {
-            $_GET;
-            $_POST;
-    } */
-
-    public function getValuesMakitoCart($id_cart, $id_product, $id_product_attribute)
+    /**
+     * Update customized data entry
+     * @param $id_customization
+     * @param $index
+     * @param $id_module
+     * @param $cart_unit_collection
+     */
+    // public function updateCustomizedData($id_customization, $index, $price, $value)
+    public static function updateCustomizedData($id_customization)
     {
-        $dataPrint = [];
-
-        $dataPrintCart = Db::getInstance()->executeS(
-            'SELECT * FROM `' . _DB_PREFIX_ . 'rjmakito_cart` mc
-            WHERE mc.id_cart = ' . (int) $id_cart . '
-            AND mc.id_product = ' . (int) $id_product . '
-            AND mc.id_product_attribute = ' . (int) $id_product_attribute
+        $module = Module::getInstanceByName('rj_makitosync');
+        Db::getInstance()->update(
+            'customized_data',
+            array(
+                'id_customization' => (int)$id_customization,
+                'id_module' => (int)$module->id,
+            ),
+            'id_customization = ' . (int)$id_customization
         );
-
-        foreach ($dataPrintCart as $data) {
-            $areacode = $data['areacode'];
-            $dataPrint[$areacode]['areacode'] = $areacode;
-            $dataPrint[$areacode]['reference'] = $data['reference'];
-            $dataPrint[$areacode]['teccode'] = $data['teccode'];
-            $dataPrint[$areacode]['areawidth'] = $data['areawidth'];
-            $dataPrint[$areacode]['areahight'] = $data['areahight'];
-            $dataPrint[$areacode]['qcolors'] = $data['qcolors'];
-            $dataPrint[$areacode]['clicheactive'] = $data['cliche'];
-            $dataPrint[$areacode]['qty'] = $data['qty'];
-        }
-
-        return $dataPrint;
-    }
-
-    public function getValuesMakitoCartDDD($id_cart)
-    {
-        $dataPrintCart = Db::getInstance()->executeS(
-            'SELECT * FROM `' . _DB_PREFIX_ . 'rjmakito_cart` mc
-            WHERE mc.id_cart = ' . (int) $id_cart 
-        );
-
-        foreach ($dataPrintCart as $data) {
-            $areacode = $data['areacode'];
-            $dataPrint[$areacode]['areacode'] = $areacode;
-            $dataPrint[$areacode]['reference'] = $data['reference'];
-            $dataPrint[$areacode]['teccode'] = $data['teccode'];
-            $dataPrint[$areacode]['areawidth'] = $data['areawidth'];
-            $dataPrint[$areacode]['areahight'] = $data['areahight'];
-            $dataPrint[$areacode]['qcolors'] = $data['qcolors'];
-            $dataPrint[$areacode]['clicheactive'] = $data['cliche'];
-            $dataPrint[$areacode]['qty'] = $data['qty'];
-        }
-
-        return $dataPrint;
     }
 
     public static function getValuesPrintJobs()
     {
+        $_POST;
+        $_GET;
         if (Tools::getValue('areacode')) {
             $dataPrint = [];
             $areacodes = Tools::getValue('areacode');
@@ -1015,7 +1113,7 @@ class Rj_MakitoSync extends Module
             $areahight = Tools::getValue('areahight');
             $qcolors = Tools::getValue('qcolors');
             $clicheactive = Tools::getValue('cliche');
-            $qty = Tools::getValue('qty');
+            $qty = (int)Tools::getValue('qty');
 
             foreach ($areacodes as $areacode) {
                 $dataPrint[$areacode]['areacode'] = $areacode;
@@ -1034,50 +1132,20 @@ class Rj_MakitoSync extends Module
         return false;
     }
 
-    public function updateMakitoCartQuantity($id_cart, $id_product, $id_product_attribute)
-    {
-        $updateQuantity = $this->getCartProductQuantity($id_cart, $id_product, $id_product_attribute);
-        Db::getInstance()->execute(
-            'UPDATE `' . _DB_PREFIX_ . 'rjmakito_cart`
-                SET `qty` = '. $updateQuantity . '
-                WHERE `id_cart` = ' . (int)$id_cart .
-                ' AND `id_product` = ' . (int)$id_product .
-            ' AND `id_product_attribute` = ' . (int)$id_product_attribute);
-    }
-
-    public function getCartProductQuantity($id_cart, $id_product, $id_product_attribute)
-    {
-        $req = 'SELECT cp.`quantity`
-                FROM `'._DB_PREFIX_.'cart_product` cp
-                WHERE cp.`id_cart` = '.(int)$id_cart.'
-                AND cp.`id_product` = '.(int)$id_product.'
-                AND cp.`id_product_attribute` = '.(int)$id_product_attribute;
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($req);
-    }
-
-    public function makitoCartExists($id_cart, $id_product_attribute)
-    {
-        $req = 'SELECT mc.`id_cart`
-                FROM `'._DB_PREFIX_.'rjmakito_cart` mc
-                WHERE mc.`id_cart` = '.(int)$id_cart.'
-                AND mc.`id_product_attribute` = '.(int)$id_product_attribute;
-        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($req);
-
-        return ($row);
-    }
-
     public function hookDisplayProductAdditionalInfo($params)
     {
         $paramsProduct = $params['product'];
         $dataProduct=[];
 
-        $idProduct = (int)$params['product']['id_product'];
+        $id_product = (int)$params['product']['id_product'];
         $reference = $params['product']['reference'];        
         $printjobs = RjMakitoItemPrint::getItemsAreas($reference);
         
+        // ojo eliminar
         $dataget = $_GET;
         $_POST;
 
+        $activar = 0;
         $getvalues = self::getValuesPrintJobs();
         if($getvalues){
             foreach ($getvalues as $areacode => $dataprint) {
@@ -1085,10 +1153,13 @@ class Rj_MakitoSync extends Module
                 $dataprint['qcolors'] = ($printjobs[$areacode]['maxcolour'] < $dataprint['qcolors']) ? $printjobs[$areacode]['maxcolour'] : $dataprint['qcolors'];
                 $printjobs[$areacode]['cliche'] = $printjobs[$areacode]['printjobs'][$dataprint['teccode']]['cliche'] * $dataprint['qcolors'];
                 $printjobs[$areacode]['clicherep'] = $printjobs[$areacode]['printjobs'][$dataprint['teccode']]['clicherep'] * $dataprint['qcolors'];
+                $activar = $areacode;  
                 $printjobs[$areacode]['active'] = true;
+
                 $printjobs[$areacode]['priceprint'] = RjMakitoItemPrint::calculaPrecioPrint($dataprint);
                 $printjobs[$areacode] = array_merge($printjobs[$areacode],$dataprint);
             }
+
         }
 
         if($printjobs){
@@ -1096,15 +1167,14 @@ class Rj_MakitoSync extends Module
                 array(
                     'reference' => $reference,
                     'printjobs' => $printjobs,
-                    'idProduct' => $idProduct,
-                    //dump
+                    'idProduct' => $id_product,
                     'dataget' => $dataget,
                     'getvalues' => $getvalues,
+                    'activar' => (!$activar)?1:$activar,
                 )
             );
 
             return $this->display(__FILE__, 'printjobs_product.tpl');
-            dump($idProduct, $printjobs, $dataget, $getvalues);
         }
     }
 

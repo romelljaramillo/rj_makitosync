@@ -1,11 +1,9 @@
 <?php
 require_once(_PS_MODULE_DIR_ . "rj_makitosync/rj_makitosync.php");
 include_once(_PS_MODULE_DIR_ . "rj_makitosync/classes/RjMakitoItemPrint.php");
+include_once(_PS_MODULE_DIR_ . "rj_makitosync/classes/RjMakitoCart.php");
 class Product extends ProductCore
 {
-
-    public static $pricePrint;
-
     public static function priceCalculation(
         $id_shop,
         $id_product,
@@ -52,11 +50,10 @@ class Product extends ProductCore
             $real_quantity,
             $id_customization
         );
-        // return $price;
+        
         if (!Module::isEnabled('rj_makitosync')) {
             return $price;
         }
-
         $price = Product::incrementPriceRoanja($price);
        
         $pricePrint = Product::calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity); 
@@ -91,13 +88,11 @@ class Product extends ProductCore
             
             $price += $pricePrint;
         }
-
         if (Tools::getValue('controller') == 'product') {
             $price*=$quantity;
         }
         
         return $price;
-
     }
 
     public static function incrementPriceRoanja($price)
@@ -117,25 +112,17 @@ class Product extends ProductCore
     {
         $pricePrint = 0;
         $dataprint = [];
-        // $processcart = false;
-        $_GET;
-        $_POST;
-
-        if (Tools::getValue('controller') == 'cart' && $id_cart ||  Tools::getValue('action') == 'add-to-cart' && $id_cart ) {
-            $dataprint = rj_makitosync::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
-        // } elseif(Tools::getValue('action') === 'show' && $id_cart) {
-            // $dataprint = rj_makitosync::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
-        } else {
-            $dataprint = rj_makitosync::getValuesPrintJobs();
+        $id_shop = (int)Shop::getContextShopID();
+        if(Tools::getValue('op'))
+            rj_makitosync::updateMakitoCartQuantity($id_cart, $id_product, $id_product_attribute);
+        if(!$dataprint = rj_makitosync::getValuesPrintJobs()){
+            $dataprint = RjMakitoCart::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
         }
-
         if($dataprint){
             foreach ($dataprint as $datacode) {
                 $pricePrint += RjMakitoItemPrint::calculaPrecioPrint($datacode) / $quantity;
             }
         }
-
         return $pricePrint;
     }
-
 }

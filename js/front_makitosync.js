@@ -27,10 +27,11 @@
 */
 
 $(document).ready(function () {
-    $('body').on('change touchspin.on.startspin', '#accordionPrintJobs [name]', function (event) {
+    $('body').on('change touchspin.on.startspin', '#form-printjobs [name]', function (event) {
         event.preventDefault();
         console.log(this);
         let areacode = $(this).parents('.areacode').attr('data-areacode');
+        console.log(areacode);
         if(activeInputs(areacode, false) && validaWidthSize(areacode) && validaHeigthSize(areacode)){
             prestashop.emit('updateProduct',event);
         }

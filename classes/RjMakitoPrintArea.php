@@ -66,4 +66,19 @@ class RjMakitoPrintArea extends ObjectModel
         ],
     ];
 
+    public static function getNamePrintAreaByAreacodeRef($areacode, $reference)
+    {
+        $sql = new DbQuery();
+        $sql->select('it.*');
+        $sql->from('rjmakito_printarea', 'it');
+        $sql->where('it.reference = "' . $reference . '" AND it.areacode = "' . $areacode . '"');
+        $sql->groupby('it.areacode');
+        
+        if ($query = Db::getInstance()->getRow($sql)){
+            return $query;
+        }
+
+        return false;
+    }
+
 } 

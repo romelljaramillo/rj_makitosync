@@ -120,7 +120,7 @@ class RjMakitoItemPrint extends ObjectModel
         $areacode = $dataPrint['areacode'];
         $teccode = $dataPrint['teccode'];
         $cantidadcolor = (int)$dataPrint['qcolors'];
-        $cliche = (int)$dataPrint['clicheactive'];;
+        $cliche = (int)$dataPrint['clicheactive'];
 
         $dataTypePrint = self::getTypePrint($areacode, $reference, $teccode);
          

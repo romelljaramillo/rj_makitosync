@@ -63,3 +63,43 @@
     margin-left: 5px;
     z-index: 99;
 }
+
+/*----------------------------------------------------------*/
+#form-printjobs.tabs {
+    margin-top: 0;
+}
+
+#nav-tabs-printjobs.nav-tabs .nav-link {
+    padding: 2px;
+    border: 2px solid transparent;
+
+}
+
+#nav-tabs-printjobs.nav-tabs {
+    border-bottom: 2px solid #2fb5d2;
+    background: #f2f2f2;
+}
+
+#nav-tabs-printjobs.nav-tabs .nav-item {
+    float: left;
+    margin-bottom: -2px;
+    padding: 0;
+    margin-left: 0px;
+}
+
+#nav-tabs-printjobs.nav-tabs .nav-item.open .nav-link, 
+#nav-tabs-printjobs.nav-tabs .nav-item.open .nav-link:focus, 
+#nav-tabs-printjobs.nav-tabs .nav-item.open .nav-link:hover, 
+#nav-tabs-printjobs.nav-tabs .nav-link.active, 
+#nav-tabs-printjobs.nav-tabs .nav-link.active:focus, 
+#nav-tabs-printjobs.nav-tabs .nav-link.active:hover {
+    border-color: #2fb5d2 #2fb5d2 transparent;
+}
+
+#form-printjobs .current-price-print{
+    text-align: right;
+    font-size: 25px;
+}
+#form-printjobs .current-price-print .price-print{
+    font-size: 2rem;
+}
