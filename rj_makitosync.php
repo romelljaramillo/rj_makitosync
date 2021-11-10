@@ -39,6 +39,8 @@ include_once(__DIR__ . '/classes/RjMakitoPrintArea.php');
 include_once(__DIR__ . '/classes/RjMakitoItemPrint.php');
 include_once(__DIR__ . '/classes/RjMakitoCart.php');
 
+use PrestaShop\PrestaShop\Core\Product\ProductInterface;
+
 class Rj_MakitoSync extends Module
 {
     private $reference;
@@ -158,7 +160,7 @@ class Rj_MakitoSync extends Module
         // Configuration::deleteByName('rj_makitosync_URL_SERVICE_KEY_API');
         // Configuration::deleteByName('rj_makitosync_URL_SERVICE_PROVEEDOR');
 
-        // include(dirname(__FILE__) . '/sql/uninstall.php');
+        include(dirname(__FILE__) . '/sql/uninstall.php');
         if (parent::uninstall()) {
             $this->uninstallTab('AdminParentRJmakitosync');
             $this->uninstallTab('AdminConfigMakitoSync');
@@ -569,6 +571,14 @@ class Rj_MakitoSync extends Module
                     }
                 }
             }
+            
+            $id_product = $this->getIdProductByReference($this->reference);
+            if($id_product){
+                $resp = $this->addCustomizationField($id_product);
+                if($resp)
+                    $resp = $this->updateProductCustomization($id_product);
+
+            }
         }
     }
 
@@ -676,6 +686,75 @@ class Rj_MakitoSync extends Module
         }
 
         return true;
+    }
+
+    protected function addCustomizationField($id_product)
+    {
+        $id_customization_field = $this->getCustomizationFieldIdByIdProduct($id_product);
+        if($id_customization_field){
+            $customizationField = new CustomizationField((int)$id_customization_field);
+        } else {
+            $customizationField = new CustomizationField();
+        }
+
+        $customizationField->id_product = (int)$id_product;
+        $customizationField->type = 1;
+        $customizationField->required = 0;
+        $customizationField->is_module = 1;
+        $customizationField->is_deleted = 0;
+
+        $languages = Language::getLanguages(false);
+        foreach ($languages as $language) {
+            $customizationField->name[$language['id_lang']] = 'printJobs';
+        }
+
+        if(!$id_customization_field){
+            if(!$customizationField->add())
+                $this->errors[] = $this->displayError($this->l('The print area could not be add.'));
+        } else {
+            if(!$customizationField->update())
+                $this->errors[] = $this->displayError($this->l('The print area could not be update.'));
+        }
+
+        return true;
+    }
+
+    protected function updateProductCustomization($id_product)
+    {
+        $product = new Product($id_product);
+        $product->id_type_redirected = 0;
+        $product->redirect_type = ProductInterface::REDIRECT_TYPE_CATEGORY_MOVED_PERMANENTLY;
+        $product->customizable = 1;
+        $product->text_fields += 1;
+        $product->update();
+    }
+
+    public function getCustomizationFieldIdByIdProduct($id_product)
+    {
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
+        SELECT cf.id_customization_field FROM ' . _DB_PREFIX_ . 'customization_field cf
+        INNER JOIN ' . _DB_PREFIX_ . 'customization_field_lang cfl 
+        ON cf.id_customization_field = cfl.id_customization_field
+        WHERE cf.id_product = ' . (int) $id_product . ' AND cf.is_module=1 AND cfl.name = "printJobs"');
+    }
+    
+    protected function getIdProductByReference($reference)
+    {
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
+        SELECT id_product FROM ' . _DB_PREFIX_ . 'product WHERE reference="' . $reference .'"');
+
+    }
+
+    public function getCustomizationFieldIds($id_product)
+    {
+        if (!Customization::isFeatureActive()) {
+            return [];
+        }
+
+        return Db::getInstance()->executeS('
+            SELECT *
+            FROM `' . _DB_PREFIX_ . 'customization_field`
+            WHERE `id_product` = ' . (int) $id_product);
     }
 
     protected function savePrintArea($arrayPrintArea)
@@ -821,45 +900,6 @@ class Rj_MakitoSync extends Module
         return $printjobs;
     }
 
-    /**
-     * Add the CSS & JavaScript files you want to be loaded in the BO.
-     */
-    public function hookBackOfficeHeader()
-    {
-        $this->context->controller->addJS($this->_path . 'views/js/back.js');
-        $this->context->controller->addCSS($this->_path . 'views/css/back.css');
-    }
-
-    /**
-     * Add the CSS & JavaScript files you want to be added on the FO.
-     */
-    public function hookHeader()
-    {
-        // $this->context->controller->addJS($this->_path . '/views/js/front_makito.js');
-        // $this->context->controller->registerJavascript('modules-rjmakitosync', 'modules/' . $this->name . '/js/front_makitosync.js');
-
-        // $this->context->controller->addCSS($this->_path . '/views/css/front.css');
-    }
-
-    public function hookDisplayAdminProductsExtra($params)
-    {
-        $id_shop = (int)Shop::getContextShopID();
-        $id_lang = (int)$this->context->language->id;
-
-        $idProduct = (int) $params['id_product'];
-        $product = new Product((int)$idProduct);
-
-        $printjobs = $this->getPrintJobsItemsAreas($product->reference);
-
-        $this->context->smarty->assign(
-            array(
-                'printjobs' => $printjobs,
-                'idProduct' => $idProduct
-            )
-        );
-        return $this->display(__FILE__, 'admin_product.tpl');
-    }
-
     public function getPrintJobsItemsAreas($reference)
     {
         $sql = new DbQuery();
@@ -872,11 +912,6 @@ class Rj_MakitoSync extends Module
         return Db::getInstance()->executeS($sql);
     }
 
-    public function hookActionProductAdd($params)
-    {
-        // dump($params);
-    }
-
     public function getCartProductQuantity($id_cart, $id_product, $id_product_attribute)
     {
         $req = 'SELECT cp.`quantity`
@@ -887,17 +922,55 @@ class Rj_MakitoSync extends Module
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($req);
     }
 
-    public function setMakitoCart($id_cart, $id_shop, $id_customer=null)
+    public static function updateMakitoCartQuantity($id_cart, $id_product, $id_product_attribute){
+        $id_rjmakito_cart = RjMakitoCart::getIdMakitoCart($id_cart, $id_product, $id_product_attribute);
+        $qty = self::getCartProductQuantity($id_cart, $id_product, $id_product_attribute);
+
+        if($id_rjmakito_cart['id_rjmakito_cart']){
+            foreach ($id_rjmakito_cart['id_rjmakito_cart'] as $id) {
+                $rjMakitoCart = new RjMakitoCart((int)$id);
+                $rjMakitoCart->qty = (int)$qty;
+                $rjMakitoCart->update();
+            }
+        }
+    }
+
+
+    public static function updatePriceCustomizedData($id_cart, $id_product, $id_product_attribute, $id_customization)
     {
-        $_GET;
-        $_POST;
+        $dataprint = RjMakitoCart::getValuesMakitoCart($id_cart, $id_product, $id_product_attribute);
+        $priceprint = 0;
+        if($dataprint){
+            foreach ($dataprint as $datacode) {
+                $priceprint += RjMakitoItemPrint::calculaPrecioPrint($datacode) / (int)$datacode['qty'];
+            }
+        }
+
+        Db::getInstance()->update(
+            'customized_data',
+            ['price' => $priceprint],
+            'id_customization = ' . (int)$id_customization
+        );
+    }
+
+    public function setMakitoCart($id_cart)
+    {
+        $dataget = array_merge($_GET,$_POST);
+
         $id_product_attribute = 0;
         $id_product = (int)Tools::getValue('id_product');
 
-        if (Tools::getIsset('group')) {
+        $id_shop = Shop::getContext();
+        // revisar con y sin usuario
+        $id_customer = Context::getContext()->customer->id;
+
+        $id_product_attribute = 0;
+        $group = Tools::getValue('group');
+        if (!empty($group)) {
+        // if (Tools::getIsset('group')) {
             $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
                 $id_product,
-                Tools::getValue('group'),
+                $group,
                 true
             );
         }
@@ -915,6 +988,7 @@ class Rj_MakitoSync extends Module
                     $rjMakitoCart->qty = (int)$qty;
                 }
                 
+                $rjMakitoCart->price = (float)$value['price'];
                 $rjMakitoCart->cliche = (int)$value['clicheactive'];
                 $rjMakitoCart->qcolors = (int)$value['qcolors'];
                 $rjMakitoCart->areahight = $value['areahight'];
@@ -938,12 +1012,235 @@ class Rj_MakitoSync extends Module
         }
     }
 
+    public function addCustomization($id_customization)
+    {
+        $dataget = array_merge($_GET,$_POST);
+
+        if (Tools::getValue('areacode')) {
+            $price = 0;
+            $index = 0;
+            
+            if (!$this->context->cart->id) {
+                if (Context::getContext()->cookie->id_guest) {
+                    $guest = new Guest(Context::getContext()->cookie->id_guest);
+                    $this->context->cart->mobile_theme = $guest->mobile_theme;
+                }
+                $this->context->cart->add();
+                if ($this->context->cart->id) {
+                    Context::getContext()->cookie->id_cart = (int)$this->context->cart->id;
+                }
+            }
+    
+            if (!isset($this->context->cart->id)) {
+                return false;
+            }
+    
+            $id_cart = $this->context->cart->id;
+            $id_product = Tools::getValue('id_product');
+            $quantity = Tools::getValue('qty');
+
+            if (!$field_ids = self::getCustomizationFieldIds($id_product)) {
+                return false;
+            }
+
+            foreach ($field_ids as $field_id) {
+                if ($field_id['is_module']) {
+                    $index = (int)$field_id['id_customization_field'];
+                }
+            }
+
+            if ($index) {
+                $id_product_attribute = 0;
+                $group = Tools::getValue('group');
+                if (!empty($group)) {
+                    $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
+                        $id_product,
+                        $group,
+                        true
+                    );
+                }
+                
+                $rjmakito_cart = RjMakitoCart::getIdMakitoCart($id_cart, $id_product, $id_product_attribute);
+
+                if ($rjmakito_cart) {
+                    if(!$rjmakito_cart['id_customization']){
+                        $id_customization = $this->context->cart->_addCustomization($id_product, $id_product_attribute, $index, Product::CUSTOMIZE_TEXTFIELD, json_encode($rjmakito_cart['id_rjmakito_cart']), 0, true);
+                        self::updateCustomizedData($id_customization);
+                        
+                        foreach ($rjmakito_cart['id_rjmakito_cart'] as $id) {
+                            $rjMakitoCart = new RjMakitoCart($id);
+                            $rjMakitoCart->id_customization = (int)$id_customization;
+                            $rjMakitoCart->update();
+                        }
+                        return $id_customization;
+                    } else {
+                        $id_customization = $rjmakito_cart['id_customization'];
+                        $this->setMakitoCart($id_cart);
+
+                        $rjmakito_cart = RjMakitoCart::getIdMakitoCart($id_cart, $id_product, $id_product_attribute);
+
+                        foreach ($rjmakito_cart['id_rjmakito_cart'] as $id) {
+                            $rjMakitoCart = new RjMakitoCart($id);
+                            $rjMakitoCart->id_customization = (int)$id_customization;
+                            $rjMakitoCart->update();
+                        }
+
+                        self::updateCustomizedData($id_customization, json_encode($rjmakito_cart['id_rjmakito_cart']));
+
+                        return $id_customization; 
+                    }
+                } elseif($id_cart) {
+                    $this->setMakitoCart($id_cart);
+                    return $this->addCustomization($id_customization);
+                } else {
+                    $this->context->cart->deleteCustomizationToProduct((int) $id_product, $index);
+                }
+            }
+            
+            return $id_customization;
+        }
+
+        return $id_customization;
+    }
+
+    public static function updateCustomizedData($id_customization, $value = null)
+    {
+        $dataget = array_merge($_GET,$_POST);
+        $module = Module::getInstanceByName('rj_makitosync');
+
+        if($value){
+            $data = [
+                'id_module' => (int)$module->id,
+                'value' => $value
+            ];
+        } else {
+            $data = ['id_module' => (int)$module->id];
+        }
+        Db::getInstance()->update(
+            'customized_data',
+            $data,
+            'id_customization = ' . (int)$id_customization
+        );
+    }
+
+    public static function getValuesPrintJobs()
+    {
+        $dataget = array_merge($_GET,$_POST);
+        if (Tools::getValue('areacode')) {
+            $dataPrint = [];
+            $areacodes = Tools::getValue('areacode');
+            $reference = Tools::getValue('reference');
+            $teccode = Tools::getValue('teccode');
+            $areawidth = Tools::getValue('areawidth');
+            $areahight = Tools::getValue('areahight');
+            $qcolors = Tools::getValue('qcolors');
+            $clicheactive = Tools::getValue('cliche');
+            $qty = (int)Tools::getValue('qty');
+
+            foreach ($areacodes as $areacode) {
+                $dataPrint[$areacode]['areacode'] = $areacode;
+                $dataPrint[$areacode]['reference'] = $reference;
+                $dataPrint[$areacode]['teccode'] = $teccode[$areacode];
+                $dataPrint[$areacode]['areawidth'] = $areawidth[$areacode];
+                $dataPrint[$areacode]['areahight'] = $areahight[$areacode];
+                $dataPrint[$areacode]['qcolors'] = $qcolors[$areacode];
+                $dataPrint[$areacode]['clicheactive'] = $clicheactive[$areacode];
+                $dataPrint[$areacode]['qty'] = $qty;
+                $priceprint = RjMakitoItemPrint::calculaPrecioPrint($dataPrint[$areacode]);
+                $dataPrint[$areacode]['price'] = (float)$priceprint;
+            }
+            return $dataPrint;
+    
+        } 
+        
+        return false;
+    }
+
+    public static function incrementPriceRoanja($price)
+    {
+         $price_increment = Configuration::get('RJ_PRICE_INCREMENT', true);
+         if (Configuration::get('RJ_PRICE_ALCANCE', true)) {
+             if (Configuration::get('RJ_PRICE_INCREMENT_TYPE', true)) {
+                 $price += $price * $price_increment / 100;
+             } else {
+                 $price += $price_increment;
+             }
+         }
+         return $price;
+    }
+
+    public static function calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity)
+    {
+        // ojo borrar
+        $data = array_merge($_GET, $_POST);
+
+        $pricePrint = 0;
+        $dataprint = [];
+        $id_shop = (int)Shop::getContextShopID();
+        
+        if(!$dataprint = Rj_MakitoSync::getValuesPrintJobs()){
+            $dataprint = RjMakitoCart::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
+        }
+
+        if($dataprint){
+            foreach ($dataprint as $datacode) {
+                $pricePrint += RjMakitoItemPrint::calculaPrecioPrint($datacode) / $quantity;
+            }
+        }
+        return $pricePrint;
+    }
+
+    public function hookActionProductAdd($params)
+    {
+        // dump($params);
+    }
+
+    /**
+     * Add the CSS & JavaScript files you want to be loaded in the BO.
+     */
+    public function hookBackOfficeHeader()
+    {
+        $this->context->controller->addJS($this->_path . 'views/js/back.js');
+        $this->context->controller->addCSS($this->_path . 'views/css/back.css');
+    }
+
+    /**
+     * Add the CSS & JavaScript files you want to be added on the FO.
+     */
+    public function hookHeader()
+    {
+        // $this->context->controller->addJS($this->_path . '/views/js/front_makito.js');
+        // $this->context->controller->registerJavascript('modules-rjmakitosync', 'modules/' . $this->name . '/js/front_makitosync.js');
+
+        // $this->context->controller->addCSS($this->_path . '/views/css/front.css');
+    }
+
+    public function hookDisplayAdminProductsExtra($params)
+    {
+        // $id_shop = (int)Shop::getContextShopID();
+        // $id_lang = (int)$this->context->language->id;
+
+        // $idProduct = (int) $params['id_product'];
+        // $product = new Product((int)$idProduct);
+
+        // $printjobs = $this->getPrintJobsItemsAreas($product->reference);
+
+        // $this->context->smarty->assign(
+        //     array(
+        //         'printjobs' => $printjobs,
+        //         'idProduct' => $idProduct
+        //     )
+        // );
+        // return $this->display(__FILE__, 'admin_product.tpl');
+    }
+
     public function hookActionCartSave($params)
     {
+        $data = array_merge($_GET, $_POST);
         $cart = $params['cart'];
         if(Tools::getValue('controller') == "cart" && $cart){
             if (Tools::getIsset('add') || Tools::getIsset('update')) {
-                $this->setMakitoCart($cart->id, $cart->id_shop, $cart->id_customer);
+                $this->setMakitoCart($cart->id);
             } 
         }
     }
@@ -989,161 +1286,16 @@ class Rj_MakitoSync extends Module
         AND `id_product_attribute` = ' . (int)$id_product_attribute);
     }
 
-    public function getCustomizationFieldIds($id_product)
-    {
-        if (!Customization::isFeatureActive()) {
-            return [];
-        }
-
-        return Db::getInstance()->executeS('
-            SELECT *
-            FROM `' . _DB_PREFIX_ . 'customization_field`
-            WHERE `id_product` = ' . (int) $id_product);
-    }
-
-    public function addCustomization($id_customization)
-    {
-        $_GET;
-        $_POST;
-        $this->context = Context::getContext();
-        $id_shop = $this->context->shop->id;
-        // $context_cart = Context::getContext()->cart;
-        if (Tools::getValue('areacode')) {
-            
-            $price = 0;
-            $index = 0;
-            
-            if (!$this->context->cart->id) {
-                if (Context::getContext()->cookie->id_guest) {
-                    $guest = new Guest(Context::getContext()->cookie->id_guest);
-                    $this->context->cart->mobile_theme = $guest->mobile_theme;
-                }
-                $this->context->cart->add();
-                if ($this->context->cart->id) {
-                    Context::getContext()->cookie->id_cart = (int)$this->context->cart->id;
-                }
-            }
-    
-            if (!isset($this->context->cart->id)) {
-                return false;
-            }
-    
-            $id_cart = $this->context->cart->id;
-            $id_product = Tools::getValue('id_product');
-            $quantity = Tools::getValue('qty');
-
-            if (!$field_ids = self::getCustomizationFieldIds($id_product)) {
-                return false;
-            }
-
-            foreach ($field_ids as $field_id) {
-                if ($field_id['is_module']) {
-                    $index = (int)$field_id['id_customization_field'];
-                }
-            }
-
-            if ($index) {
-                if (Tools::getIsset('group')) {
-                    $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
-                        $id_product,
-                        Tools::getValue('group'),
-                        true
-                    );
-                }
-                
-                $rjmakito_cart = RjMakitoCart::getIdMakitoCart($id_cart, $id_product, $id_product_attribute);
-
-                if ($rjmakito_cart) {
-                    if(!$rjmakito_cart['id_customization']){
-                        $id_customization = $context_cart->_addCustomization($id_product, $id_product_attribute, $index, Product::CUSTOMIZE_TEXTFIELD, json_encode($rjmakito_cart['id_rjmakito_cart']), $quantity, true);
-                        self::updateCustomizedData($id_customization);
-                        
-                        foreach ($rjmakito_cart['id_rjmakito_cart'] as $id) {
-                            $rjMakitoCart = new RjMakitoCart($id);
-                            $rjMakitoCart->id_customization = (int)$id_customization;
-                            $rjMakitoCart->update();
-                        }
-
-                    } else {
-                        return $rjmakito_cart['id_customization']; 
-                    }
-                } elseif($id_cart) {
-                    $this->setMakitoCart($id_cart, $id_shop);
-                    $this->addCustomization($id_customization);
-                } else {
-                    $context_cart->deleteCustomizationToProduct((int) $id_product, $index);
-                }
-            }
-            return $id_customization;
-        }
-    }
-
-
-    /**
-     * Update customized data entry
-     * @param $id_customization
-     * @param $index
-     * @param $id_module
-     * @param $cart_unit_collection
-     */
-    // public function updateCustomizedData($id_customization, $index, $price, $value)
-    public static function updateCustomizedData($id_customization)
-    {
-        $module = Module::getInstanceByName('rj_makitosync');
-        Db::getInstance()->update(
-            'customized_data',
-            array(
-                'id_customization' => (int)$id_customization,
-                'id_module' => (int)$module->id,
-            ),
-            'id_customization = ' . (int)$id_customization
-        );
-    }
-
-    public static function getValuesPrintJobs()
-    {
-        $_POST;
-        $_GET;
-        if (Tools::getValue('areacode')) {
-            $dataPrint = [];
-            $areacodes = Tools::getValue('areacode');
-            $reference = Tools::getValue('reference');
-            $teccode = Tools::getValue('teccode');
-            $areawidth = Tools::getValue('areawidth');
-            $areahight = Tools::getValue('areahight');
-            $qcolors = Tools::getValue('qcolors');
-            $clicheactive = Tools::getValue('cliche');
-            $qty = (int)Tools::getValue('qty');
-
-            foreach ($areacodes as $areacode) {
-                $dataPrint[$areacode]['areacode'] = $areacode;
-                $dataPrint[$areacode]['reference'] = $reference;
-                $dataPrint[$areacode]['teccode'] = $teccode[$areacode];
-                $dataPrint[$areacode]['areawidth'] = $areawidth[$areacode];
-                $dataPrint[$areacode]['areahight'] = $areahight[$areacode];
-                $dataPrint[$areacode]['qcolors'] = $qcolors[$areacode];
-                $dataPrint[$areacode]['clicheactive'] = $clicheactive[$areacode];
-                $dataPrint[$areacode]['qty'] = $qty;
-            }
-            return $dataPrint;
-    
-        } 
-        
-        return false;
-    }
-
     public function hookDisplayProductAdditionalInfo($params)
     {
-        $paramsProduct = $params['product'];
-        $dataProduct=[];
+        $tpl_vars = $this->context->smarty->tpl_vars;
 
         $id_product = (int)$params['product']['id_product'];
         $reference = $params['product']['reference'];        
         $printjobs = RjMakitoItemPrint::getItemsAreas($reference);
         
         // ojo eliminar
-        $dataget = $_GET;
-        $_POST;
+        $dataget = array_merge($_GET,$_POST);
 
         $activar = 0;
         $getvalues = self::getValuesPrintJobs();
@@ -1156,7 +1308,14 @@ class Rj_MakitoSync extends Module
                 $activar = $areacode;  
                 $printjobs[$areacode]['active'] = true;
 
-                $printjobs[$areacode]['priceprint'] = RjMakitoItemPrint::calculaPrecioPrint($dataprint);
+                $priceprint = RjMakitoItemPrint::calculaPrecioPrint($dataprint);
+                $priceprint = self::incrementPriceRoanja($priceprint);
+                if($tpl_vars['tax_rate']->value && $tpl_vars['tax_enabled']->value && !$tpl_vars['customer_group_without_tax']->value){
+                    $priceprint += $priceprint * $tpl_vars['tax_rate']->value / 100;
+                }
+
+                $printjobs[$areacode]['priceprint'] = $priceprint;
+
                 $printjobs[$areacode] = array_merge($printjobs[$areacode],$dataprint);
             }
 
@@ -1168,9 +1327,11 @@ class Rj_MakitoSync extends Module
                     'reference' => $reference,
                     'printjobs' => $printjobs,
                     'idProduct' => $id_product,
-                    'dataget' => $dataget,
                     'getvalues' => $getvalues,
                     'activar' => (!$activar)?1:$activar,
+                    // 'dataget' => $dataget,
+                    // 'params' => $params,
+                    // 'productparam' => $tpl_vars
                 )
             );
 

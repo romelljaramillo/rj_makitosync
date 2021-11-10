@@ -147,7 +147,41 @@ class RjMakitoItemPrint extends ObjectModel
 
         $priceCliche = ($cliche == 1) ? $dataTypePrint['cliche'] * $cantidadcolor : $dataTypePrint['clicherep'] * $cantidadcolor;
 
-        return $precioprint + $priceCliche;
+        $price = $precioprint + $priceCliche;
+        
+        return $price;
+    }
+
+    public static function calculaTax($id_product, $pricePrint)
+    {
+        $usetax = true;
+
+        if ($pricePrint) {
+            static $address = null;
+            static $context = null;
+    
+            if ($context == null) {
+                $context = Context::getContext()->cloneContext();
+            }
+    
+            if ($address === null) {
+                if (is_object($context->cart) && $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')} != null) {
+                    $id_address = $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
+                    $address = new Address($id_address);
+                } else {
+                    $address = new Address();
+                }
+            }
+    
+            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $id_product, $context));
+            $product_tax_calculator = $tax_manager->getTaxCalculator();
+
+            $priceConTaxs = $product_tax_calculator->addTaxes($pricePrint);
+            
+            return $priceConTaxs;
+        }
+        
+        return $pricePrint;
     }
 
 } 

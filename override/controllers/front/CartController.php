@@ -12,22 +12,28 @@
  * @copyright 2016-2021 Musaffar Patel
  * @license   LICENSE.txt
  */
-
 class CartController extends CartControllerCore
 {
-
-        /**
-     * Create customization before adding to cart, so id_customization can be assigned to cart product
-     */
     protected function processChangeProductInCart()
     {
+        $dataget = array_merge($_GET,$_POST);
 
         if (!Module::isEnabled('rj_makitosync')) {
             parent::processChangeProductInCart();
         }
         
         include_once(_PS_MODULE_DIR_ . "rj_makitosync/rj_makitosync.php");
-        $this->customization_id = rj_makitosync::processCustomization();
+        $rj_makitosync = new Rj_MakitoSync();
+        $this->customization_id = $rj_makitosync->addCustomization($this->customization_id);
         parent::processChangeProductInCart();
+        $id_cart = $this->context->cart->id;
+        $id_product = $this->id_product;
+        $id_product_attribute = $this->id_product_attribute;
+        if (Tools::getValue('op')) {
+            Rj_MakitoSync::updateMakitoCartQuantity($this->context->cart->id, $this->id_product, $this->id_product_attribute);
+        }
+
+        Rj_MakitoSync::updatePriceCustomizedData($this->context->cart->id, $this->id_product, $this->id_product_attribute, $this->customization_id);
+
     }
 }

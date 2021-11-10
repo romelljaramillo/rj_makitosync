@@ -54,75 +54,53 @@ class Product extends ProductCore
         if (!Module::isEnabled('rj_makitosync')) {
             return $price;
         }
-        $price = Product::incrementPriceRoanja($price);
-       
-        $pricePrint = Product::calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity); 
         
-        if ($pricePrint) {
-            static $address = null;
-            static $context = null;
-    
-            if ($context == null) {
-                $context = Context::getContext()->cloneContext();
-            }
-    
-            if ($address === null) {
-                if (is_object($context->cart) && $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')} != null) {
-                    $id_address = $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
-                    $address = new Address($id_address);
-                } else {
-                    $address = new Address();
+        // Ojo Borrar
+        $dataget = array_merge($_GET,$_POST);
+
+        if (Tools::getValue('controller') == 'product' 
+        || Tools::getValue('controller') == "orderconfirmation" 
+        && $id_cart
+        ) {
+            $pricePrint = Rj_MakitoSync::calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity); 
+            if ($pricePrint) {
+                static $address = null;
+                static $context = null;
+        
+                if ($context == null) {
+                    $context = Context::getContext()->cloneContext();
                 }
-            }
-    
-            $address->id_country = $id_country;
-            $address->id_state = $id_state;
-            $address->postcode = $zipcode;
-    
-            $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $id_product, $context));
-            $product_tax_calculator = $tax_manager->getTaxCalculator();
-    
-            if ($use_tax) {
-                $pricePrint = $product_tax_calculator->addTaxes($pricePrint);
-            }
-            
-            $price += $pricePrint;
-        }
-        if (Tools::getValue('controller') == 'product') {
-            $price*=$quantity;
-        }
         
-        return $price;
-    }
-
-    public static function incrementPriceRoanja($price)
-    {
-         $price_increment = Configuration::get('RJ_PRICE_INCREMENT', true);
-         if (Configuration::get('RJ_PRICE_ALCANCE', true)) {
-             if (Configuration::get('RJ_PRICE_INCREMENT_TYPE', true)) {
-                 $price += $price * $price_increment / 100;
-             } else {
-                 $price += $price_increment;
-             }
-         }
-         return $price;
-    }
-
-    public static function calculaPricePrintMakito($id_cart, $id_product,  $id_product_attribute, $quantity)
-    {
-        $pricePrint = 0;
-        $dataprint = [];
-        $id_shop = (int)Shop::getContextShopID();
-        if(Tools::getValue('op'))
-            rj_makitosync::updateMakitoCartQuantity($id_cart, $id_product, $id_product_attribute);
-        if(!$dataprint = rj_makitosync::getValuesPrintJobs()){
-            $dataprint = RjMakitoCart::getValuesMakitoCart($id_cart, $id_product,  $id_product_attribute);
-        }
-        if($dataprint){
-            foreach ($dataprint as $datacode) {
-                $pricePrint += RjMakitoItemPrint::calculaPrecioPrint($datacode) / $quantity;
+                if ($address === null) {
+                    if (is_object($context->cart) && $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')} != null) {
+                        $id_address = $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
+                        $address = new Address($id_address);
+                    } else {
+                        $address = new Address();
+                    }
+                }
+        
+                $address->id_country = $id_country;
+                $address->id_state = $id_state;
+                $address->postcode = $zipcode;
+        
+                $tax_manager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int) $id_product, $context));
+                $product_tax_calculator = $tax_manager->getTaxCalculator();
+        
+                if ($use_tax) {
+                    $pricePrint = $product_tax_calculator->addTaxes($pricePrint);
+                }
+                
+                $price += $pricePrint;
             }
-        }
-        return $pricePrint;
+
+            if (Tools::getValue('controller') == 'product') {
+                $price*=$quantity;
+            }
+        } 
+        
+        $price = Rj_MakitoSync::incrementPriceRoanja($price);
+
+        return $price;
     }
 }

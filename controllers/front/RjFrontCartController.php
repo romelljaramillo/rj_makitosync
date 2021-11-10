@@ -55,10 +55,12 @@ class RjFrontCartController extends Module
             }
 
             if ($index) {
-                if (Tools::getIsset('group')) {
+                $id_product_attribute = 0;
+                $groups = Tools::getValue('group');
+                if (!empty($groups)) {
                     $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
                         $id_product,
-                        Tools::getValue('group'),
+                        $groups,
                         true
                     );
                 }
@@ -117,10 +119,12 @@ class RjFrontCartController extends Module
         $id_product_attribute = 0;
         $id_product = (int)Tools::getValue('id_product');
 
-        if (Tools::getIsset('group')) {
+        $id_product_attribute = 0;
+        $groups = Tools::getValue('group');
+        if (!empty($groups)) {
             $id_product_attribute = (int) Product::getIdProductAttributeByIdAttributes(
                 $id_product,
-                Tools::getValue('group'),
+                $groups,
                 true
             );
         }

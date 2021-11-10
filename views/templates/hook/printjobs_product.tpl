@@ -123,7 +123,7 @@
                         <div class="current-price-print text-right">
                             <h4>
                                 {l s='Price' mod='rj_makitosync'}:
-                                <span class="price-print" id="price-print_{$printjob.areacode}">{$printjob.priceprint}</span> €
+                                <span class="price-print" id="price-print_{$printjob.areacode}">{Tools::displayPrice($printjob.priceprint)}</span>
                                 <input type="hidden" id="price_{$printjob.areacode}" name="price[{$printjob.areacode}]" value="{$printjob.priceprint}" {if !$printjob.active} disabled {/if}>
                             </h4>
                         </div>
@@ -133,8 +133,4 @@
         {/foreach} 
     </div>
 </div>
-{$idProduct|dump}
-{$dataget|dump}
-{$getvalues|dump}
-
 
