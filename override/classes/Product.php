@@ -1,7 +1,5 @@
 <?php
-require_once(_PS_MODULE_DIR_ . "rj_makitosync/rj_makitosync.php");
-include_once(_PS_MODULE_DIR_ . "rj_makitosync/classes/RjMakitoItemPrint.php");
-include_once(_PS_MODULE_DIR_ . "rj_makitosync/classes/RjMakitoCart.php");
+
 class Product extends ProductCore
 {
     public static function priceCalculation(
@@ -54,10 +52,7 @@ class Product extends ProductCore
         if (!Module::isEnabled('rj_makitosync')) {
             return $price;
         }
-        
-        // Ojo Borrar
-        $dataget = array_merge($_GET,$_POST);
-
+        require_once(_PS_MODULE_DIR_ . "rj_makitosync/rj_makitosync.php");
         if (Tools::getValue('controller') == 'product' 
         || Tools::getValue('controller') == "orderconfirmation" 
         && $id_cart

@@ -16,8 +16,6 @@ class CartController extends CartControllerCore
 {
     protected function processChangeProductInCart()
     {
-        $dataget = array_merge($_GET,$_POST);
-
         if (!Module::isEnabled('rj_makitosync')) {
             parent::processChangeProductInCart();
         }
@@ -26,9 +24,6 @@ class CartController extends CartControllerCore
         $rj_makitosync = new Rj_MakitoSync();
         $this->customization_id = $rj_makitosync->addCustomization($this->customization_id);
         parent::processChangeProductInCart();
-        $id_cart = $this->context->cart->id;
-        $id_product = $this->id_product;
-        $id_product_attribute = $this->id_product_attribute;
         if (Tools::getValue('op')) {
             Rj_MakitoSync::updateMakitoCartQuantity($this->context->cart->id, $this->id_product, $this->id_product_attribute);
         }
