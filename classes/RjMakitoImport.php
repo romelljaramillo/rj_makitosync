@@ -1,7 +1,10 @@
 <?php
 use PrestaShop\PrestaShop\Core\Product\ProductInterface;
-
+include_once(dirname(__FILE__) . '/RjMakitoPrintjobs.php');
+include_once(dirname(__FILE__) . '/RjMakitoPrintArea.php');
+include_once(dirname(__FILE__) . '/RjMakitoItemPrint.php');
 include_once(dirname(__FILE__) . '/../rj_makitosync.php');
+
 class RjMakitoImport extends Module
 {
     private $reference;
@@ -12,21 +15,11 @@ class RjMakitoImport extends Module
     private $newsItemPrint = 0;
     private $duplicadosPrintJobs = 0;
     private $duplicadosItemPrint = 0;
-
-    /**
-     * url de donde se descargan los xml
-     *
-     * @var array
-     */
-    // protected $nodesDowload = ['PrintJobsPrices'];
-    protected $nodesDowload = ['PrintJobsPrices', 'ItemPrintingFile'];
-
+    protected $nodesDowload = [
+        'PrintJobsPrices', 
+        'ItemPrintingFile'
+    ];
     protected $nodeActual;
-    /**
-     * Nombre del parametro de api_key
-     *
-     * @var string
-     */
     protected $namekey = 'pszinternal';
     
     public function __construct()
@@ -44,11 +37,10 @@ class RjMakitoImport extends Module
             $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/' . $this->nodeActual . '.php?' . $this->namekey . '=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
             $nameFile = date("Y-m-d") . '-' . $this->nodeActual . '.xml';
 
-            
-            if (file_exists($nameFile)) {
-                $this->_html .= $this->l("El fichero $nameFile existe");
-            } else {
-                $this->getAPI($url, $nameFile);
+            if (!file_exists($nameFile)) {
+                if(!$this->getAPI($url, $nameFile)){
+                    return false;
+                }
             }
 
             if ($this->nodeActual) {
@@ -127,6 +119,8 @@ class RjMakitoImport extends Module
     private function processItemPrint($datos)
     {
         $this->reference = '';
+        ini_set( 'max_execution_time', 0);
+
         foreach ($datos as $data) {
             $arrayPrintjob = array();
             $arrayPrintjob['reference'] = $data['ref'];
@@ -175,7 +169,7 @@ class RjMakitoImport extends Module
                 }
             }
             
-            $id_product = $this->getIdProductByReference($this->reference);
+            $id_product = $this->getIdProductByReference();
             if($id_product){
                 $resp = $this->addCustomizationField($id_product);
                 if($resp)
@@ -190,7 +184,7 @@ class RjMakitoImport extends Module
         foreach ($datos as $data) {
             $idPrintJobs = $this->existePrintJobs($data['teccode']);
 
-            if (!isset($idPrintJobs)) {
+            if (!$idPrintJobs) {
                 $printjobs = new RjMakitoPrintjobs();
                 $this->newsPrintJobs++;
             } else {
@@ -202,12 +196,18 @@ class RjMakitoImport extends Module
                 $printjobs->$key = (isset($value)) ? $value : NULL;
             }
 
-            if (!isset($idPrintJobs)) {
+            if (!$idPrintJobs) {
                 if (!$printjobs->add()) {
-                    $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+                    $this->errors[] = $this->displayError(
+                        $this->l('Error al intentar guardar PrintJobs de la referencia. ') .
+                        $printjobs->teccode
+                    );
                 }
             } elseif (!$printjobs->update()) {
-                $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+                $this->errors[] = $this->displayError(
+                    $this->l('Error al intentar actualizar PrintJobs de la referencia. ') .
+                    $printjobs->teccode
+                );
             }
         }
     }
@@ -224,12 +224,12 @@ class RjMakitoImport extends Module
 
     protected function savePrintArea($arrayPrintArea)
     {
-        $id = $this->existePrintArea($arrayPrintArea['areacode']);
-        if (!isset($id)) {
+        $id_rjmakito_printarea = $this->existePrintArea($arrayPrintArea['areacode']);
+        if (!$id_rjmakito_printarea) {
             $PrintArea = new RjMakitoPrintArea();
             $this->newsPrintArea++;
         } else {
-            $PrintArea = new RjMakitoPrintArea($id);
+            $PrintArea = new RjMakitoPrintArea($id_rjmakito_printarea);
             $this->duplicadosPrintArea++;
         }
 
@@ -240,12 +240,18 @@ class RjMakitoImport extends Module
         $PrintArea->areahight = $arrayPrintArea['areahight'];
         $PrintArea->areaimg = $arrayPrintArea['areaimg'];
 
-        if (!isset($id)) {
+        if (!$id_rjmakito_printarea) {
             if (!$PrintArea->add()) {
-                $this->errors[] = $this->displayError($this->l('The print area could not be added.'));
+                $this->errors[] = $this->displayError(
+                    $this->l('Error al intentar guardar printarea de la referencia. ') . 
+                    $this->reference
+                );
             }
         } elseif (!$PrintArea->update()) {
-            $this->errors[] = $this->displayError($this->l('The print area could not be update.'));
+            $this->errors[] = $this->displayError(
+                $this->l('Error al intentar actualizar printarea de la referencia. ') . 
+                $this->reference
+            );
         }
 
         return true;
@@ -253,52 +259,43 @@ class RjMakitoImport extends Module
 
     public function existePrintJobs($teccode)
     {
-        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
-            "SELECT `id_rjmakito_printjobs` as id
+        $sql = "SELECT p.`id_rjmakito_printjobs` as id
 			FROM `" . _DB_PREFIX_ . "rjmakito_printjobs` p
-			WHERE p.`teccode` = '" . $teccode . "'",
-            false
-        );
-
-        return $row['id'];
+			WHERE p.`teccode` = '" . $teccode . "'";
+            
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql, false);
     }
 
     public function existeItemPrint($teccode, $areacode)
     {
-        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
-            "SELECT `id_rjmakito_itemprint` as id
-			FROM `" . _DB_PREFIX_ . "rjmakito_itemprint` p
-			WHERE p.`reference` = '" . $this->reference . "'
-            AND p.`teccode` = '" . $teccode . "'
-            AND p.`areacode` = " . (int)$areacode,
-            false
-        );
-
-        return $row['id'];
+        $sql = "SELECT p.`id_rjmakito_itemprint` as id
+                FROM `" . _DB_PREFIX_ . "rjmakito_itemprint` p
+                WHERE p.`reference` = '" . $this->reference . "'
+                AND p.`teccode` = '" . $teccode . "'
+                AND p.`areacode` = " . (int)$areacode;
+        
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql, false);
     }
 
     public function existePrintArea($areacode)
     {
-        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
-            "SELECT `id_rjmakito_printarea` as id
-			FROM `" . _DB_PREFIX_ . "rjmakito_printarea` p
-			WHERE p.`areacode` = " . (int)$areacode . "
-            AND p.`reference` = '" . $this->reference . "'",
-            false
-        );
+        $sql = "SELECT p.`id_rjmakito_printarea` as id
+                FROM `" . _DB_PREFIX_ . "rjmakito_printarea` p
+                WHERE p.`areacode` = " . (int)$areacode . "
+                AND p.`reference` = '" . $this->reference . "'";
 
-        return $row['id'];
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql, false);
     }
 
     protected function saveItemPrint($arrayItemPrint)
     {
-        $id = $this->existeItemPrint($arrayItemPrint['teccode'], $arrayItemPrint['areacode']);
+        $id_rjmakito_itemprint = $this->existeItemPrint($arrayItemPrint['teccode'], $arrayItemPrint['areacode']);
 
-        if (!isset($id)) {
+        if (!$id_rjmakito_itemprint) {
             $itemPrint = new RjMakitoItemPrint();
             $this->newsItemPrint++;
         } else {
-            $itemPrint = new RjMakitoItemPrint($id);
+            $itemPrint = new RjMakitoItemPrint($id_rjmakito_itemprint);
             $this->duplicadosItemPrint++;
         }
 
@@ -308,21 +305,26 @@ class RjMakitoImport extends Module
         $itemPrint->includedcolour = $arrayItemPrint['includedcolour'];
         $itemPrint->areacode = $arrayItemPrint['areacode'];
 
-        if (!isset($id)) {
+        if (!$id_rjmakito_itemprint) {
             if (!$itemPrint->add()) {
-                $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+                $this->errors[] = $this->displayError(
+                    $this->l('Error al intentar guardar ItemPrint de la referencia. ') . 
+                    $arrayItemPrint['reference']);
             }
         } elseif (!$itemPrint->update()) {
-            $this->errors[] = $this->displayError($this->l('The item print could not be added.'));
+            $this->errors[] = $this->displayError(
+                $this->l('Error al intentar actualizar ItemPrint de la referencia. ') . 
+                $arrayItemPrint['reference']);
         }
 
         return true;
     }
 
-    protected function getIdProductByReference($reference)
+    protected function getIdProductByReference()
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
-        SELECT id_product FROM ' . _DB_PREFIX_ . 'product WHERE reference="' . $reference .'"');
+        $sql ="SELECT p.`id_product` FROM " . _DB_PREFIX_ . "product p
+                WHERE p.`reference` = '" . $this->reference . "'";
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql, false);
 
     }
 
@@ -347,11 +349,19 @@ class RjMakitoImport extends Module
         }
 
         if(!$id_customization_field){
-            if(!$customizationField->add())
-                $this->errors[] = $this->displayError($this->l('The print area could not be add.'));
+            if(!$customizationField->add()){
+                $this->errors[] = $this->displayError(
+                    $this->l('Error al intentar guardar la customization product. ') .
+                    $id_product
+                );
+            }
         } else {
-            if(!$customizationField->update())
-                $this->errors[] = $this->displayError($this->l('The print area could not be update.'));
+            if(!$customizationField->update()){
+                $this->errors[] = $this->displayError(
+                    $this->l('Error al intentar actualizar la customization product. ') . 
+                    $id_product
+                );
+            }
         }
 
         return true;
@@ -376,21 +386,22 @@ class RjMakitoImport extends Module
 
     public function getCustomizationFieldIdByIdProductNoPrintJob($id_product)
     {
-        Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-        SELECT cf.id_customization_field FROM ' . _DB_PREFIX_ . 'customization_field cf
-        INNER JOIN ' . _DB_PREFIX_ . 'customization_field_lang cfl 
-        ON cf.id_customization_field = cfl.id_customization_field
-        WHERE cf.id_product = ' . (int) $id_product . ' AND cfl.name != "printJobs"');
+        $sql = "SELECT cf.`id_customization_field` FROM " . _DB_PREFIX_ . "customization_field cf
+        INNER JOIN " . _DB_PREFIX_ . "customization_field_lang cfl 
+        ON cf.`id_customization_field` = cfl.`id_customization_field`
+        WHERE cf.`id_product` = " . (int)$id_product . " AND cfl.`name` != 'printJobs'";
+        Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql, true, false);
 
         return Db::getInstance()->NumRows();
     }
 
     public function getCustomizationFieldIdByIdProduct($id_product)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
-        SELECT cf.id_customization_field FROM ' . _DB_PREFIX_ . 'customization_field cf
-        INNER JOIN ' . _DB_PREFIX_ . 'customization_field_lang cfl 
-        ON cf.id_customization_field = cfl.id_customization_field
-        WHERE cf.id_product = ' . (int) $id_product . ' AND cf.is_module=1 AND cfl.name = "printJobs"');
+        $sql = "SELECT cf.`id_customization_field` FROM " . _DB_PREFIX_ . "customization_field cf
+        INNER JOIN " . _DB_PREFIX_ . "customization_field_lang cfl 
+        ON cf.`id_customization_field` = cfl.`id_customization_field`
+        WHERE cf.`id_product` = " . (int)$id_product . " AND cf.`is_module` = 1 AND cfl.`name` = 'printJobs'";
+
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql, false);
     }
 }

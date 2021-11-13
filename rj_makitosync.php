@@ -40,7 +40,6 @@ include_once(__DIR__ . '/classes/RjMakitoItemPrint.php');
 include_once(__DIR__ . '/classes/RjMakitoCart.php');
 include_once(__DIR__ . '/classes/RjMakitoImport.php');
 
-
 class Rj_MakitoSync extends Module
 {
     protected $_html = '';
@@ -161,12 +160,11 @@ class Rj_MakitoSync extends Module
         /**
          * If values have been submitted in the form, process.
          */
-        if (Tools::isSubmit('submitUrlService') || Tools::isSubmit('submitPriceIncrement')) {
+        if (Tools::isSubmit('submitUrlService') 
+            || Tools::isSubmit('submitPriceIncrement')
+            || Tools::isSubmit('manual_import')
+        ) {
             $this->postProcess();
-        }
-
-        if (Tools::isSubmit('manual_import')) {
-            $this->importDataMakito();
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
@@ -211,6 +209,10 @@ class Rj_MakitoSync extends Module
     protected function postProcess()
     {
         $form_values = [];
+        if (Tools::isSubmit('manual_import')) {
+            $this->importDataMakito();
+        }
+
         if(Tools::isSubmit('submitUrlService')){
             $form_values = self::getConfigFormValuesUrlService();
         }
@@ -448,8 +450,10 @@ class Rj_MakitoSync extends Module
 
     public function importDataMakito()
     {
+        $this->_html .= date('d-m-Y H:i:s');
         $rjMakitoImport = new RjMakitoImport();
         $resp = $rjMakitoImport->processImport();
+        $this->_html .= date('d-m-Y H:i:s');
 
         if(!$resp){
             $this->_html .= $this->displayError($this->l('Error in process import.'));
@@ -793,7 +797,6 @@ class Rj_MakitoSync extends Module
 
     public static function getValuesPrintJobs()
     {
-        $dataget = array_merge($_GET,$_POST);
         if (Tools::getValue('areacode')) {
             $dataPrint = [];
             $areacodes = Tools::getValue('areacode');
