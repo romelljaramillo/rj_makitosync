@@ -23,7 +23,9 @@ if (Tools::getIsset('secure_key')) {
     $secureKey = md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME'));
     if (!empty($secureKey) && $secureKey === $_GET['secure_key']) {
         $hora_inicial           = date('d-m-Y H:i:s');
-        file_put_contents("log_cron_function.txt", "Comenzamos ejecucion Cron -> $hora_inicial".PHP_EOL);
+        $date = date('d-m-Y');
+        $file = date('d-m-Y') . "_log_cron_function.txt";
+        file_put_contents($file, "Comenzamos ejecucion Cron -> $hora_inicial".PHP_EOL);
 
         $cron = new RjMakitoImport();
         $resp = $cron->processImport();
@@ -35,11 +37,11 @@ if (Tools::getIsset('secure_key')) {
 
         if(!$resp){
             echo 'Error en el proceso';
-            file_put_contents("log_cron_rjmakitosync.txt", "Tiempo transcurrido en ejecución => ".$tiempo_ejecucion->format('%h horas %i minutos %s segundos').PHP_EOL, FILE_APPEND);
+            file_put_contents($file,'<pre>' . print_r($cron->errors) . '</pre>'.PHP_EOL);
+            file_put_contents($file, "Tiempo transcurrido en ejecución => ".$tiempo_ejecucion->format('%h horas %i minutos %s segundos').PHP_EOL, FILE_APPEND);
             echo "Error: Finalizado cron con error<br>";
         } else {
-            
-            file_put_contents("log_cron_rjmakitosync.txt", "Tiempo transcurrido en ejecución => ".$tiempo_ejecucion->format('%h horas %i minutos %s segundos').PHP_EOL, FILE_APPEND);
+            file_put_contents($file, "Tiempo transcurrido en ejecución => ".$tiempo_ejecucion->format('%h horas %i minutos %s segundos').PHP_EOL, FILE_APPEND);
             echo "Success: Finalizada cron con exito<br>";
         }
     }

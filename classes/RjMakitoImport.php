@@ -8,13 +8,14 @@ include_once(dirname(__FILE__) . '/../rj_makitosync.php');
 class RjMakitoImport extends Module
 {
     private $reference;
-    protected $_html = '';
     private $url_import = '';
-    private $errors = array();
+    public $errors = array();
     private $newsPrintJobs = 0;
     private $newsItemPrint = 0;
+    private $newsPrintArea= 0;
     private $duplicadosPrintJobs = 0;
     private $duplicadosItemPrint = 0;
+    private $duplicadosPrintArea = 0;
     protected $nodesDowload = [
         'PrintJobsPrices', 
         'ItemPrintingFile'
@@ -36,15 +37,23 @@ class RjMakitoImport extends Module
             $data_ws = Rj_MakitoSync::getConfigFormValuesUrlService();
             $url = $data_ws['rj_makitosync_URL_SERVICE_URL'] . '/' . $this->nodeActual . '.php?' . $this->namekey . '=' . $data_ws['rj_makitosync_URL_SERVICE_KEY_API'];
             $nameFile = date("Y-m-d") . '-' . $this->nodeActual . '.xml';
-
-            if (!file_exists($nameFile)) {
+            
+            if (!file_exists($this->url_import . $nameFile)) {
                 if(!$this->getAPI($url, $nameFile)){
                     return false;
                 }
             }
 
             if ($this->nodeActual) {
-                $this->setData($nameFile);
+                $datos = $this->readXML($nameFile);
+
+                if ($datos) {
+                    if ($this->nodeActual === 'PrintJobsPrices') {
+                        $this->processPrintJobs($datos);
+                    } else {
+                        $this->processItemPrint($datos);
+                    }
+                }
             }
         }
 
@@ -72,31 +81,12 @@ class RjMakitoImport extends Module
         fclose($archivo);
 
         $numIntentos = 0;
-        $correcto = false;
 
         if ($infoCurl['http_code'] == 200 && $numIntentos <= 10) {
-            $correcto = true;
-        }
-
-        if ($correcto) {
-            $resultado = $nameFile;
+            return $nameFile;
         } else {
-            $resultado = false;
-        }
-
-        return $resultado;
-    }
-
-    public function setData($file)
-    {
-        $datos = $this->readXML($file);
-
-        if ($datos) {
-            if ($this->nodeActual === 'PrintJobsPrices') {
-                $this->processPrintJobs($datos);
-            } else {
-                $this->processItemPrint($datos);
-            }
+            $this->errors[] = $this->l('Error al intentar conectar con webservice Makito. ');
+            return false;
         }
     }
 
@@ -119,7 +109,7 @@ class RjMakitoImport extends Module
     private function processItemPrint($datos)
     {
         $this->reference = '';
-        ini_set( 'max_execution_time', 0);
+        set_time_limit(0);
 
         foreach ($datos as $data) {
             $arrayPrintjob = array();
@@ -133,18 +123,17 @@ class RjMakitoImport extends Module
                         $arrayPrintjob['includedcolour'] = $printjob['includedcolour'];
                         if (isset($printjob['areas']['area'])) {
                             if (isset($printjob['areas']['area']['areacode'])) {
-                                $arrayPrintjob['areacode'] = $this->processAreas($printjob['areas']['area']);
-                                $this->saveItemPrint($arrayPrintjob);
-                            } else {
-                                foreach ($printjob['areas']['area'] as $area) {
-                                    $arrayPrintjob['areacode'] = $this->processAreas($area);
+                                if($arrayPrintjob['areacode'] = $this->processAreas($printjob['areas']['area'])){
                                     $this->saveItemPrint($arrayPrintjob);
                                 }
+                            } else {
+                                foreach ($printjob['areas']['area'] as $area) {
+                                    if($arrayPrintjob['areacode'] = $this->processAreas($area)){
+                                        $this->saveItemPrint($arrayPrintjob);
+                                    }
+                                }
                             }
-                        } else {
-                            $arrayPrintjob['areacode'] = null;
-                            $this->saveItemPrint($arrayPrintjob);
-                        }
+                        } 
                     } else {
                         foreach ($printjob as $job) {
                             $arrayPrintjob['teccode'] = $job['teccode'];
@@ -152,18 +141,17 @@ class RjMakitoImport extends Module
                             $arrayPrintjob['includedcolour'] = $job['includedcolour'];
                             if (isset($job['areas']['area'])) {
                                 if (isset($job['areas']['area']['areacode'])) {
-                                    $arrayPrintjob['areacode'] = $this->processAreas($job['areas']['area']);
-                                    $this->saveItemPrint($arrayPrintjob);
-                                } else {
-                                    foreach ($job['areas']['area'] as $area) {
-                                        $arrayPrintjob['areacode'] = $this->processAreas($area);
+                                    if($arrayPrintjob['areacode'] = $this->processAreas($job['areas']['area'])){
                                         $this->saveItemPrint($arrayPrintjob);
                                     }
+                                } else {
+                                    foreach ($job['areas']['area'] as $area) {
+                                        if($arrayPrintjob['areacode'] = $this->processAreas($area)){
+                                            $this->saveItemPrint($arrayPrintjob);
+                                        }
+                                    }
                                 }
-                            } else {
-                                $arrayPrintjob['areacode'] = null;
-                                $this->saveItemPrint($arrayPrintjob);
-                            }
+                            } 
                         }
                     }
                 }
@@ -172,10 +160,11 @@ class RjMakitoImport extends Module
             $id_product = $this->getIdProductByReference();
             if($id_product){
                 $resp = $this->addCustomizationField($id_product);
-                if($resp)
-                    $resp = $this->updateProductCustomization($id_product);
+                if($resp){
+                    $this->updateProductCustomization($id_product);
+                }
 
-            }
+            }                
         }
     }
 
@@ -188,38 +177,32 @@ class RjMakitoImport extends Module
                 $printjobs = new RjMakitoPrintjobs();
                 $this->newsPrintJobs++;
             } else {
-                $printjobs = new RjMakitoPrintjobs($idPrintJobs);
+                $printjobs = new RjMakitoPrintjobs((int)$idPrintJobs);
                 $this->duplicadosPrintJobs++;
             }
 
             foreach ($data as $key => $value) {
-                $printjobs->$key = (isset($value)) ? $value : NULL;
+                $printjobs->$key = (!empty($value)) ? $value : NULL;
             }
 
             if (!$idPrintJobs) {
                 if (!$printjobs->add()) {
-                    $this->errors[] = $this->displayError(
-                        $this->l('Error al intentar guardar PrintJobs de la referencia. ') .
-                        $printjobs->teccode
-                    );
+                    $this->errors[] = $this->l('Error al intentar guardar PrintJobs de la referencia. ') . $printjobs->teccode;
                 }
             } elseif (!$printjobs->update()) {
-                $this->errors[] = $this->displayError(
-                    $this->l('Error al intentar actualizar PrintJobs de la referencia. ') .
-                    $printjobs->teccode
-                );
+                $this->errors[] = $this->l('Error al intentar actualizar PrintJobs de la referencia. ') . $printjobs->teccode;
             }
         }
     }
 
     private function processAreas($area = null)
     {
-        if (isset($area['areacode'])) {
+        if (isset($area['areacode']) && $area['areacode'] != '0') {
             $this->savePrintArea($area);
             return $area['areacode'];
         }
 
-        return null;
+        return false;
     }
 
     protected function savePrintArea($arrayPrintArea)
@@ -229,7 +212,7 @@ class RjMakitoImport extends Module
             $PrintArea = new RjMakitoPrintArea();
             $this->newsPrintArea++;
         } else {
-            $PrintArea = new RjMakitoPrintArea($id_rjmakito_printarea);
+            $PrintArea = new RjMakitoPrintArea((int)$id_rjmakito_printarea);
             $this->duplicadosPrintArea++;
         }
 
@@ -242,16 +225,10 @@ class RjMakitoImport extends Module
 
         if (!$id_rjmakito_printarea) {
             if (!$PrintArea->add()) {
-                $this->errors[] = $this->displayError(
-                    $this->l('Error al intentar guardar printarea de la referencia. ') . 
-                    $this->reference
-                );
+                $this->errors[] = $this->l('Error al intentar guardar printarea de la referencia. ') . $this->reference;
             }
         } elseif (!$PrintArea->update()) {
-            $this->errors[] = $this->displayError(
-                $this->l('Error al intentar actualizar printarea de la referencia. ') . 
-                $this->reference
-            );
+            $this->errors[] = $this->l('Error al intentar actualizar printarea de la referencia. ') . $this->reference;
         }
 
         return true;
@@ -307,17 +284,11 @@ class RjMakitoImport extends Module
 
         if (!$id_rjmakito_itemprint) {
             if (!$itemPrint->add()) {
-                $this->errors[] = $this->displayError(
-                    $this->l('Error al intentar guardar ItemPrint de la referencia. ') . 
-                    $arrayItemPrint['reference']);
+                $this->errors[] = $this->l('Error al intentar guardar ItemPrint de la referencia. ') . $arrayItemPrint['reference'];
             }
         } elseif (!$itemPrint->update()) {
-            $this->errors[] = $this->displayError(
-                $this->l('Error al intentar actualizar ItemPrint de la referencia. ') . 
-                $arrayItemPrint['reference']);
+            $this->errors[] =  $this->l('Error al intentar actualizar ItemPrint de la referencia. ') . $arrayItemPrint['reference'];
         }
-
-        return true;
     }
 
     protected function getIdProductByReference()
@@ -335,9 +306,9 @@ class RjMakitoImport extends Module
             $customizationField = new CustomizationField((int)$id_customization_field);
         } else {
             $customizationField = new CustomizationField();
+            $customizationField->id_product = (int)$id_product;
         }
 
-        $customizationField->id_product = (int)$id_product;
         $customizationField->type = 1;
         $customizationField->required = 0;
         $customizationField->is_module = 1;
@@ -350,17 +321,13 @@ class RjMakitoImport extends Module
 
         if(!$id_customization_field){
             if(!$customizationField->add()){
-                $this->errors[] = $this->displayError(
-                    $this->l('Error al intentar guardar la customization product. ') .
-                    $id_product
-                );
+                $this->errors[] = $this->l('Error al intentar guardar la customization product. ') . $id_product;
+                return false;
             }
         } else {
             if(!$customizationField->update()){
-                $this->errors[] = $this->displayError(
-                    $this->l('Error al intentar actualizar la customization product. ') . 
-                    $id_product
-                );
+                $this->errors[] = $this->l('Error al intentar actualizar la customization product. ') . $id_product;
+                return false;
             }
         }
 
@@ -381,7 +348,9 @@ class RjMakitoImport extends Module
             $product->text_fields += 1;
         }
 
-        $product->update();
+        if(!$product->update())
+            $this->errors[] =  $this->l('Error al intentar actualizar producto con id_product. ') . $id_product;
+
     }
 
     public function getCustomizationFieldIdByIdProductNoPrintJob($id_product)
@@ -397,10 +366,12 @@ class RjMakitoImport extends Module
 
     public function getCustomizationFieldIdByIdProduct($id_product)
     {
-        $sql = "SELECT cf.`id_customization_field` FROM " . _DB_PREFIX_ . "customization_field cf
-        INNER JOIN " . _DB_PREFIX_ . "customization_field_lang cfl 
-        ON cf.`id_customization_field` = cfl.`id_customization_field`
-        WHERE cf.`id_product` = " . (int)$id_product . " AND cf.`is_module` = 1 AND cfl.`name` = 'printJobs'";
+        $sql = "SELECT cf.`id_customization_field` 
+                FROM " . _DB_PREFIX_ . "customization_field cf
+                INNER JOIN " . _DB_PREFIX_ . "customization_field_lang cfl 
+                ON cf.`id_customization_field` = cfl.`id_customization_field`
+                WHERE cf.`id_product` = " . (int)$id_product . " 
+                AND cf.`is_module` = 1 AND cfl.`name` = 'printJobs'";
 
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql, false);
     }

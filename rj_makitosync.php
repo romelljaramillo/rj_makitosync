@@ -450,15 +450,13 @@ class Rj_MakitoSync extends Module
 
     public function importDataMakito()
     {
-        $this->_html .= date('d-m-Y H:i:s');
         $rjMakitoImport = new RjMakitoImport();
         $resp = $rjMakitoImport->processImport();
-        $this->_html .= date('d-m-Y H:i:s');
 
         if(!$resp){
-            $this->_html .= $this->displayError($this->l('Error in process import.'));
+            $this->_html .= $this->displayError($rjMakitoImport->errors);
         }else{
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true) . '&conf=3&configure=' . $this->name);
         }
     }
 
